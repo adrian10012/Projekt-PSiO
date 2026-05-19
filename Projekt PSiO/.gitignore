@@ -1,0 +1,11 @@
+
+.vs/
+x64/
+Debug/
+Release/
+*.VC.db
+*.opendb
+*.suo
+
+extlibs/
+*.dll
