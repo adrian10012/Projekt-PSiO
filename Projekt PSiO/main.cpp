@@ -31,22 +31,31 @@ int main()
             {
                 sf::Vector2i mouse = sf::Mouse::getPosition(window);
 
-                // Klikniêcia w menu
-                if (menu.open())
-                {
+                // Klikni�cia w menu
+                if (ekwipunek.isOpen()) {
+                    ekwipunek.handleClick(mouse);
+                }
+                else if (platnerz.isOpen()) {
+                    platnerz.handleClick(mouse);
+                }
+                else if (wiedzma.isOpen()) {
+                    wiedzma.handleClick(mouse);
+                }
+                else if (kowal.isOpen()) {
+                    kowal.handleClick(mouse);
+                }
+                else {
                     menu.handleClick(mouse);
 
-                    if (menu.getLastClicked() == "Ekwipunek") ekwipunek.toggle();
-                    if (menu.getLastClicked() == "Kowal")     kowal.toggle();
-                    if (menu.getLastClicked() == "Platnerz")  platnerz.toggle();
-                    if (menu.getLastClicked() == "Wiedzma")   wiedzma.toggle();
+                    if (menu.getLastClicked() == "Ekwipunek")
+                        ekwipunek.toggle();
+                    if (menu.getLastClicked() == "Platnerz")
+                        platnerz.toggle();
+                    if (menu.getLastClicked() == "Wiedzma")
+                        wiedzma.toggle();
+                    if (menu.getLastClicked() == "Kowal")
+                        kowal.toggle();
                 }
-
-                // Klikniêcia w oknach
-                ekwipunek.handleClick(mouse);
-                platnerz.handleClick(mouse);
-                wiedzma.handleClick(mouse);
-                kowal.handleClick(mouse);
             }
         }
 
