@@ -54,7 +54,7 @@ void resolveEnemyCollisions(std::vector<std::unique_ptr<Enemy>>& enemies) {
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Projekt RPG - Walka i Miasto");
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Jarek Kaczynski");
     window.setFramerateLimit(60);
 
     GameState currentState = GameState::MIASTO;

@@ -132,18 +132,41 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Ekwipunek.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Kowal.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Mikstura.cpp" />
+    <ClCompile Include="Platnerz.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Wiedzma.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="openal32.dll" />
+    <None Include="sfml-audio-2.dll" />
+    <None Include="sfml-audio-d-2.dll" />
+    <None Include="sfml-graphics-2.dll" />
+    <None Include="sfml-graphics-d-2.dll" />
+    <None Include="sfml-network-2.dll" />
+    <None Include="sfml-network-d-2.dll" />
+    <None Include="sfml-system-2.dll" />
+    <None Include="sfml-system-d-2.dll" />
+    <None Include="sfml-window-2.dll" />
+    <None Include="sfml-window-d-2.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bullet.h" />
+    <ClInclude Include="Ekwipunek.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="Kowal.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="Mikstura.h" />
+    <ClInclude Include="Platnerz.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Splash.h" />
+    <ClInclude Include="Wiedzma.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
