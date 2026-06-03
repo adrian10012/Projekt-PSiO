@@ -6,15 +6,21 @@ const int TILE_SIZE = 40;
 const int GRID_W = 20;
 const int GRID_H = 15;
 
-Enemy::Enemy(sf::Vector2f startPos, sf::Color color, float s) {
+Enemy::Enemy(sf::Vector2f startPos, sf::Color color, float s, float startCooldown) {
     pos = startPos;
     speed = s;
+    attackCooldown = startCooldown;
+
     shape.setRadius(14.f);
     shape.setOrigin(14.f, 14.f);
     shape.setFillColor(color);
 }
 
-void Enemy::update(float dt, sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
+void Enemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
+    if (attackCooldown > 0.f) {
+        attackCooldown -= dt;
+    }
+
     sf::Vector2f finalTarget;
     if (!Sees(pos, playerPos, gridWalls)) {
         finalTarget = Dijkstra(playerPos, gridWalls);
@@ -32,10 +38,30 @@ void Enemy::update(float dt, sf::Vector2f playerPos, const std::vector<std::vect
         pos.y += moveDir.y * speed * dt;
     }
     shape.setPosition(pos);
+
+    for (auto& b : bullets) {
+        if (b.lifetime <= 0.f || b.isEnemy || b.isSplashProjectile) continue;
+
+        if (shape.getGlobalBounds().intersects(b.shape.getGlobalBounds())) {
+            hp -= b.damage;
+            b.lifetime = 0.f;
+        }
+    }
 }
 
 void Enemy::draw(sf::RenderWindow& window) {
     window.draw(shape);
+
+    sf::RectangleShape hpBg(sf::Vector2f(30, 4));
+    hpBg.setFillColor(sf::Color::Red);
+    hpBg.setPosition(pos.x - 15, pos.y - shape.getRadius() - 10);
+
+    sf::RectangleShape hpFg(sf::Vector2f(30 * std::max(0.f, hp / 100.f), 4));
+    hpFg.setFillColor(sf::Color::Green);
+    hpFg.setPosition(pos.x - 15, pos.y - shape.getRadius() - 10);
+
+    window.draw(hpBg);
+    window.draw(hpFg);
 }
 
 bool Enemy::Sees(sf::Vector2f start, sf::Vector2f target, const std::vector<std::vector<bool>>& gridWalls) {
@@ -86,7 +112,6 @@ sf::Vector2f Enemy::Dijkstra(sf::Vector2f targetPos, const std::vector<std::vect
         for (const auto& d : directions) {
             int dx = curr.x + d.x;
             int dy = curr.y + d.y;
-
             if (dx >= 0 && dx < GRID_W && dy >= 0 && dy < GRID_H) {
                 if (!gridWalls[dy][dx] && dist[curr.y][curr.x] + 1 < dist[dy][dx]) {
                     dist[dy][dx] = dist[curr.y][curr.x] + 1;
@@ -105,11 +130,15 @@ sf::Vector2f Enemy::Dijkstra(sf::Vector2f targetPos, const std::vector<std::vect
     float halfTile = static_cast<float>(TILE_SIZE) / 2.f;
     float nextX = static_cast<float>(end.x) * static_cast<float>(TILE_SIZE) + halfTile;
     float nextY = static_cast<float>(end.y) * static_cast<float>(TILE_SIZE) + halfTile;
-
     return sf::Vector2f(nextX, nextY);
 }
 
-MeleeEnemy::MeleeEnemy(sf::Vector2f startPos) : Enemy(startPos, sf::Color::Red, 120.f) {}
+// MELEE ENEMY
+MeleeEnemy::MeleeEnemy(sf::Vector2f startPos) : Enemy(startPos, sf::Color::Red, 120.f, 0.f) {
+    swordShape.setSize(sf::Vector2f(30.f, 6.f));
+    swordShape.setOrigin(0.f, 3.f);
+    swordShape.setFillColor(sf::Color(255, 100, 100));
+}
 
 sf::Vector2f MeleeEnemy::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
     sf::Vector2f dir = playerPos - pos;
@@ -118,12 +147,43 @@ sf::Vector2f MeleeEnemy::idealTarget(sf::Vector2f playerPos, const std::vector<s
     return pos + (dir * 500.f);
 }
 
-ThrowerEnemy::ThrowerEnemy(sf::Vector2f startPos) : Enemy(startPos, sf::Color::Green, 90.f) {}
+void MeleeEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
+    Enemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
+
+    if (swordAnimTimer > 0.f) swordAnimTimer -= dt;
+
+    sf::Vector2f dir = playerPos - pos;
+    float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+
+    if (dist < 32.f && attackCooldown <= 0.f) {
+        playerHp -= 20.f;
+        attackCooldown = 1.0f;
+        swordAnimTimer = 0.15f;
+        attackAngle = std::atan2(dir.y, dir.x) * 180.f / 3.14159f;
+    }
+}
+
+void MeleeEnemy::draw(sf::RenderWindow& window) {
+    Enemy::draw(window);
+
+    if (swordAnimTimer > 0.f) {
+        float progress = 1.0f - (swordAnimTimer / 0.15f);
+        float swingAngle = -45.f + (progress * 90.f);
+
+        swordShape.setPosition(pos);
+        swordShape.setRotation(attackAngle + swingAngle);
+        window.draw(swordShape);
+    }
+}
+
+// THROWER ENEMY
+ThrowerEnemy::ThrowerEnemy(sf::Vector2f startPos) : Enemy(startPos, sf::Color::Green, 90.f, 2.0f) {}
 
 sf::Vector2f ThrowerEnemy::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
     sf::Vector2f dir = playerPos - pos;
     float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (dist > 0.f) { dir.x /= dist; dir.y /= dist; }
+
     if (dist < 130.f) state = 0;
     else if (dist > 170.f) state = 1;
 
@@ -131,12 +191,28 @@ sf::Vector2f ThrowerEnemy::idealTarget(sf::Vector2f playerPos, const std::vector
     return pos + (dir * 500.f);
 }
 
-ShooterEnemy::ShooterEnemy(sf::Vector2f startPos) : Enemy(startPos, sf::Color::Magenta, 100.f) {}
+void ThrowerEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
+    Enemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
+
+    if (attackCooldown <= 0.f && Sees(pos, playerPos, gridWalls)) {
+        sf::Vector2f dir = playerPos - pos;
+        float d = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        if (d > 0) { dir.x /= d; dir.y /= d; }
+
+        float requiredSpeed = d / 0.6f;
+        bullets.emplace_back(pos, dir, 15.f, true, true, true, requiredSpeed, 6.f);
+        attackCooldown = 2.5f;
+    }
+}
+
+// SHOOTER ENEMY
+ShooterEnemy::ShooterEnemy(sf::Vector2f startPos) : Enemy(startPos, sf::Color::Magenta, 100.f, 1.5f) {}
 
 sf::Vector2f ShooterEnemy::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
     sf::Vector2f dir = playerPos - pos;
     float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (dist > 0.f) { dir.x /= dist; dir.y /= dist; }
+
     sf::Vector2f moveDir(-dir.y * strafeSign, dir.x * strafeSign);
     if (dist > 200.f) moveDir += dir;
     else if (dist < 120.f) moveDir -= dir;
@@ -150,9 +226,21 @@ sf::Vector2f ShooterEnemy::idealTarget(sf::Vector2f playerPos, const std::vector
         moveDir = sf::Vector2f(-dir.y * strafeSign, dir.x * strafeSign);
         if (dist > 200.f) moveDir += dir;
         else if (dist < 120.f) moveDir -= dir;
-
         mDist = std::sqrt(moveDir.x * moveDir.x + moveDir.y * moveDir.y);
         if (mDist > 0.f) { moveDir.x /= mDist; moveDir.y /= mDist; }
     }
     return pos + (moveDir * 500.f);
+}
+
+void ShooterEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
+    Enemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
+
+    if (attackCooldown <= 0.f && Sees(pos, playerPos, gridWalls)) {
+        sf::Vector2f dir = playerPos - pos;
+        float d = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        if (d > 0) { dir.x /= d; dir.y /= d; }
+
+        bullets.emplace_back(pos, dir, 10.f, true, false, false, 600.f, 4.f);
+        attackCooldown = 1.5f;
+    }
 }
