@@ -11,7 +11,7 @@ int main()
     window.setFramerateLimit(60);
 
     sf::Font font;
-    font.loadFromFile("OpenSans-SemiBold.ttf"); // <-- tu wstaw swój font
+    font.loadFromFile("OpenSans-SemiBold.ttf");
 
     Menu menu({ 150, 80 }, { 600, 400 }, font);
     Ekwipunek ekwipunek(font);
@@ -31,7 +31,7 @@ int main()
             {
                 sf::Vector2i mouse = sf::Mouse::getPosition(window);
 
-                // Klikniêcia w menu
+                // KlikniÃªcia w menu
                 if (menu.open())
                 {
                     menu.handleClick(mouse);
@@ -42,7 +42,7 @@ int main()
                     if (menu.getLastClicked() == "Wiedzma")   wiedzma.toggle();
                 }
 
-                // Klikniêcia w oknach
+                // KlikniÃªcia w oknach
                 ekwipunek.handleClick(mouse);
                 platnerz.handleClick(mouse);
                 wiedzma.handleClick(mouse);
