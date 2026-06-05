@@ -2,9 +2,11 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
+class Player;
+
 class Ekwipunek {
 public:
-    Ekwipunek(sf::Font& font);
+    Ekwipunek(sf::Font& font, Player* p);
 
     void draw(sf::RenderWindow& window);
     void toggle();
@@ -19,8 +21,10 @@ private:
 
     void createSlot(Slot& slot, const std::string& name, int col, int row);
     void drawSlot(sf::RenderWindow& window, Slot& slot);
+    void updateSlotLabels();
 
     sf::Font& font;
+    Player* player;
     bool open;
 
     sf::RectangleShape background;

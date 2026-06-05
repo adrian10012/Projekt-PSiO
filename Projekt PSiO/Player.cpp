@@ -16,6 +16,26 @@ Player::Player() {
 }
 
 void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes, std::vector<std::unique_ptr<Enemy>>& enemies) {
+    //Naliczanie bonusow z armorow i broni
+    finalDamage = baseDamage;
+    finalArmor = baseArmor;
+
+    if (inventory.bron)
+        finalDamage += inventory.bron->get_damage();
+
+    if (inventory.helm)
+        finalArmor += inventory.helm->get_damage();
+
+    if (inventory.klata)
+        finalArmor += inventory.klata->get_damage();
+
+    if (inventory.spodnie)
+        finalArmor += inventory.spodnie->get_damage();
+
+    if (inventory.buty)
+        finalArmor += inventory.buty->get_damage();
+    
+    
     // Ruch
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) pos.y -= speed * dt;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) pos.y += speed * dt;

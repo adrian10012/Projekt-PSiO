@@ -12,6 +12,10 @@
 #include "Platnerz.h"
 #include "Wiedzma.h"
 #include "Kowal.h"
+#include "Bronie.h"
+#include "Mikstura.h"
+#include "Pancerze.h"
+#include "Inventory.h"
 
 enum class GameState {
     MIASTO,
@@ -61,13 +65,13 @@ int main()
     sf::Font font;
     font.loadFromFile("OpenSans-SemiBold.ttf");
 
+    Player player;
     Menu menu({ 150, 80 }, { 600, 400 }, font);
-    Ekwipunek ekwipunek(font);
-    Platnerz platnerz(font);
+    Ekwipunek ekwipunek(font, &player);
+    Platnerz platnerz(font, &player);
     Wiedzma wiedzma(font);
     Kowal kowal(font);
 
-    Player player;
     player.pos = sf::Vector2f(400.f, 500.f);
     player.hp = 100.f;
     player.meleeCooldown = 0.f;

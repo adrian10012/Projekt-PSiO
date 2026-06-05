@@ -1,7 +1,11 @@
 #include "Ekwipunek.h"
+#include "Player.h"
+#include "Pancerze.h"
+#include "Bronie.h"
+#include "Mikstura.h"
 
-Ekwipunek::Ekwipunek(sf::Font& font)
-    : font(font), open(false)
+Ekwipunek::Ekwipunek(sf::Font& font, Player* p)
+    : font(font), player(p), open(false)
 {
     background.setSize({ 500, 450 });
     background.setFillColor(sf::Color(40, 40, 40, 230));
@@ -32,6 +36,8 @@ void Ekwipunek::draw(sf::RenderWindow& window) {
 
     window.draw(background);
     window.draw(closeButton);
+
+    updateSlotLabels();
 
     drawSlot(window, helm);
     drawSlot(window, chestplate);
@@ -86,4 +92,37 @@ void Ekwipunek::createSlot(Slot& slot, const std::string& name, int col, int row
 void Ekwipunek::drawSlot(sf::RenderWindow& window, Slot& slot) {
     window.draw(slot.rect);
     window.draw(slot.label);
+}
+
+void Ekwipunek::updateSlotLabels()
+{
+    if (player->inventory.helm)
+        helm.label.setString(player->inventory.helm->get_nazwa());
+    else
+        helm.label.setString("Helm");
+
+    if (player->inventory.klata)
+        chestplate.label.setString(player->inventory.klata->get_nazwa());
+    else
+        chestplate.label.setString("Zbroja");
+
+    if (player->inventory.spodnie)
+        spodnie.label.setString(player->inventory.spodnie->get_nazwa());
+    else
+        spodnie.label.setString("Spodnie");
+
+    if (player->inventory.buty)
+        buty.label.setString(player->inventory.buty->get_nazwa());
+    else
+        buty.label.setString("Buty");
+
+    if (player->inventory.bron)
+        miecz.label.setString(player->inventory.bron->get_nazwa());
+    else
+        miecz.label.setString("Miecz");
+
+    if (!player->inventory.mikstury.empty())
+        eliksir.label.setString(player->inventory.mikstury[0]->getNazwa());
+    else
+        eliksir.label.setString("Eliksir");
 }

@@ -1,7 +1,9 @@
 #include "Platnerz.h"
+#include "Player.h"
+#include "Pancerze.h"
 
-Platnerz::Platnerz(sf::Font& font)
-    : font(font), open(false)
+Platnerz::Platnerz(sf::Font& font, Player* p)
+    : font(font), player(p), open(false)
 {
     background.setSize({ 500, 450 });
     background.setFillColor(sf::Color(40, 40, 40, 230));
@@ -58,6 +60,30 @@ void Platnerz::handleClick(sf::Vector2i mouse) {
         open = false;
         return;
     }
+
+    if (helm1.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.equipArmor(std::make_unique<KiepskiHelm>());
+
+    if (helm2.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.equipArmor(std::make_unique<WybornyHelm>());
+
+    if (chest1.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.equipArmor(std::make_unique<MizernyNapiersnik>());
+
+    if (chest2.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.equipArmor(std::make_unique<DobryNapiersnik>());
+
+    if (buty1.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.equipArmor(std::make_unique<Trzewiki>());
+
+    if (buty2.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.equipArmor(std::make_unique<WygodneOnuce>());
+
+    if (spodnie1.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.equipArmor(std::make_unique<BrudneSpodnie>());
+
+    if (spodnie2.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.equipArmor(std::make_unique<PancerneSpodnie>());
 }
 
 void Platnerz::createSlot(Slot& slot, const std::string& name, int col, int row) {
