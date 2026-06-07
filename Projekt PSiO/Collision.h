@@ -6,7 +6,7 @@
 #include <algorithm>
 #include "Enemy.h" 
 
-inline void resolveCollision(sf::Vector2f& pos, float radius, const std::vector<std::vector<bool>>& gridWalls) {
+inline void collision(sf::Vector2f& pos, float radius, const std::vector<std::vector<bool>>& gridWalls) {
     if (pos.x < radius) pos.x = radius;
     if (pos.x > 800.f - radius) pos.x = 800.f - radius;
     if (pos.y < radius) pos.y = radius;
