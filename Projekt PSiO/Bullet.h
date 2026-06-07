@@ -13,7 +13,6 @@ public:
     bool isEnemy;
     bool isSplashProjectile;
     bool isFireSplash;
-
     sf::RectangleShape shape;
 
     Bullet(sf::Vector2f p, sf::Vector2f dir, float dmg, bool enemy, bool splash, bool fire, float speed, float radius)
