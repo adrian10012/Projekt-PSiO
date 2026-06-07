@@ -15,7 +15,6 @@ public:
     void update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) override;
 };
 
-
 class BossSecond : public Enemy {
 public:
     float splashTimer = 1.0f;
@@ -30,7 +29,6 @@ public:
     void update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) override;
     void draw(sf::RenderWindow& window) override;
 };
-
 
 class BossThird : public Enemy {
 public:

@@ -13,7 +13,6 @@ sf::Vector2f BossFirst::idealTarget(sf::Vector2f playerPos, const std::vector<st
 
 void BossFirst::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
     stateTimer -= dt;
-
     if (state == 0) {
         speed = 160.f;
         shape.setFillColor(sf::Color(100, 100, 100));
