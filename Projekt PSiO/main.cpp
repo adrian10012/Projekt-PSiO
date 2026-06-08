@@ -3,62 +3,27 @@
 #include <memory>
 #include <cmath>
 #include <algorithm>
+
 #include "Player.h"
 #include "Enemy.h"
+#include "Boss.h"
 #include "Bullet.h"
 #include "Splash.h"
+#include "Collision.h"
+#include "CombatManager.h"
+
 #include "Menu.h"
 #include "Ekwipunek.h"
 #include "Platnerz.h"
 #include "Wiedzma.h"
 #include "Kowal.h"
-#include "Bronie.h"
-#include "Mikstura.h"
-#include "Pancerze.h"
 #include "Inventory.h"
 
-enum class GameState {
-    MIASTO,
-    WALKA 
-};
-
-void resolveCollision(sf::Vector2f& pos, float radius, const std::vector<std::vector<bool>>& gridWalls) {
-    if (pos.x < radius) pos.x = radius;
-    if (pos.x > 800.f - radius) pos.x = 800.f - radius;
-    if (pos.y < radius) pos.y = radius;
-    if (pos.y > 600.f - radius) pos.y = 600.f - radius;
-
-    int minX = static_cast<int>(pos.x - radius) / TILE_SIZE;
-    int maxX = static_cast<int>(pos.x + radius) / TILE_SIZE;
-    int minY = static_cast<int>(pos.y - radius) / TILE_SIZE;
-    int maxY = static_cast<int>(pos.y + radius) / TILE_SIZE;
-}
-
-void resolveEnemyCollisions(std::vector<std::unique_ptr<Enemy>>& enemies) {
-    for (size_t i = 0; i < enemies.size(); ++i) {
-        for (size_t j = i + 1; j < enemies.size(); ++j) {
-            sf::Vector2f diff = enemies[i]->pos - enemies[j]->pos;
-            float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
-            float minDist = 28.f;
-
-            if (dist < minDist) {
-                if (dist == 0.f) {
-                    diff = sf::Vector2f(1.f, 0.f);
-                    dist = 1.f;
-                }
-                float overlap = minDist - dist;
-                sf::Vector2f push = (diff / dist) * (overlap * 0.5f);
-
-                enemies[i]->pos += push;
-                enemies[j]->pos -= push;
-            }
-        }
-    }
-}
+enum class GameState { MIASTO, WALKA };
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Jarek Kaczynski");
+    sf::RenderWindow window(sf::VideoMode(800, 600), "window");
     window.setFramerateLimit(60);
 
     GameState currentState = GameState::MIASTO;
@@ -72,69 +37,82 @@ int main()
     Wiedzma wiedzma(font);
     Kowal kowal(font);
 
-    player.pos = sf::Vector2f(400.f, 500.f);
+    player.pos = sf::Vector2f(400.f, 530.f);
+    player.maxHp = 100.f;
     player.hp = 100.f;
-    player.meleeCooldown = 0.f;
 
     std::vector<Bullet> bullets;
     std::vector<Splash> splashes;
     std::vector<std::unique_ptr<Enemy>> enemies;
 
-    enemies.push_back(std::make_unique<MeleeEnemy>(sf::Vector2f(200.f, 100.f)));
-    enemies.push_back(std::make_unique<ThrowerEnemy>(sf::Vector2f(400.f, 100.f)));
-    enemies.push_back(std::make_unique<ShooterEnemy>(sf::Vector2f(600.f, 100.f)));
-
     std::vector<std::vector<bool>> gridWalls(GRID_H, std::vector<bool>(GRID_W, false));
     std::vector<sf::RectangleShape> visualWalls;
 
-    int wallY = 7;
-    for (int x = 5; x <= 15; ++x) {
-        gridWalls[wallY][x] = true;
-        sf::RectangleShape wallRect(sf::Vector2f(static_cast<float>(TILE_SIZE), static_cast<float>(TILE_SIZE)));
-        wallRect.setPosition(static_cast<float>(x * TILE_SIZE), static_cast<float>(wallY * TILE_SIZE));
-        wallRect.setFillColor(sf::Color(100, 100, 100));
-        visualWalls.push_back(wallRect);
-    }
+    auto addWall = [&](int x, int y) {
+        if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
+            gridWalls[y][x] = true;
+            sf::RectangleShape wallRect(sf::Vector2f(static_cast<float>(TILE_SIZE), static_cast<float>(TILE_SIZE)));
+            wallRect.setPosition(static_cast<float>(x * TILE_SIZE), static_cast<float>(y * TILE_SIZE));
+            wallRect.setFillColor(sf::Color(80, 80, 80));
+            wallRect.setOutlineThickness(-2.f);
+            wallRect.setOutlineColor(sf::Color(50, 50, 50));
+            visualWalls.push_back(wallRect);
+        }
+        };
+
+    for (int x = 2; x <= 5; ++x) { addWall(x, 3); addWall(x, 11); }
+    for (int x = 14; x <= 17; ++x) { addWall(x, 3); addWall(x, 11); }
+    for (int y = 3; y <= 5; ++y) { addWall(2, y); addWall(17, y); }
+    for (int y = 9; y <= 11; ++y) { addWall(2, y); addWall(17, y); }
+    for (int x = 8; x <= 11; ++x) { addWall(x, 6); addWall(x, 8); }
+    addWall(7, 7); addWall(12, 7);
 
     sf::Clock clock;
 
     while (window.isOpen())
     {
-        
         float dt = clock.restart().asSeconds();
-
         sf::Event event;
+
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
-                window.close();
+            if (event.type == sf::Event::Closed) window.close();
 
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Tab) {
-                if (currentState == GameState::MIASTO) currentState = GameState::WALKA;
-                else currentState = GameState::MIASTO;
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Tab) {
+                    currentState = (currentState == GameState::MIASTO) ? GameState::WALKA : GameState::MIASTO;
+                }
+
+                if (currentState == GameState::WALKA) {
+                    if (event.key.code == sf::Keyboard::Num0) {
+                        enemies.push_back(std::make_unique<FirstMeleeEnemy>(sf::Vector2f(60.f, 60.f)));
+                        enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(740.f, 60.f)));
+                        enemies.push_back(std::make_unique<FirstThrowerEnemy>(sf::Vector2f(60.f, 530.f)));
+                        enemies.push_back(std::make_unique<SecondThrowerEnemy>(sf::Vector2f(740.f, 530.f)));
+                        enemies.push_back(std::make_unique<FirstShooterEnemy>(sf::Vector2f(400.f, 100.f)));
+                        enemies.push_back(std::make_unique<SecondShooterEnemy>(sf::Vector2f(400.f, 400.f)));
+                    }
+                    if (event.key.code == sf::Keyboard::Num1) {
+                        enemies.push_back(std::make_unique<BossFirst>(sf::Vector2f(400.f, 150.f)));
+                    }
+                    if (event.key.code == sf::Keyboard::Num2) {
+                        enemies.push_back(std::make_unique<BossSecond>(sf::Vector2f(400.f, 150.f), 3));
+                    }
+                    if (event.key.code == sf::Keyboard::Num3) {
+                        enemies.push_back(std::make_unique<BossThird>(sf::Vector2f(400.f, 150.f)));
+                    }
+                }
             }
 
-            if (currentState == GameState::MIASTO)
-            {
-                if (event.type == sf::Event::MouseButtonPressed)
-                {
+            if (currentState == GameState::MIASTO) {
+                if (event.type == sf::Event::MouseButtonPressed) {
                     sf::Vector2i mouse = sf::Mouse::getPosition(window);
-
-                    if (ekwipunek.isOpen()) {
-                        ekwipunek.handleClick(mouse);
-                    }
-                    else if (platnerz.isOpen()) {
-                        platnerz.handleClick(mouse);
-                    }
-                    else if (wiedzma.isOpen()) {
-                        wiedzma.handleClick(mouse);
-                    }
-                    else if (kowal.isOpen()) {
-                        kowal.handleClick(mouse);
-                    }
+                    if (ekwipunek.isOpen()) ekwipunek.handleClick(mouse);
+                    else if (platnerz.isOpen()) platnerz.handleClick(mouse);
+                    else if (wiedzma.isOpen()) wiedzma.handleClick(mouse);
+                    else if (kowal.isOpen()) kowal.handleClick(mouse);
                     else {
                         menu.handleClick(mouse);
-
                         if (menu.getLastClicked() == "Ekwipunek") ekwipunek.toggle();
                         if (menu.getLastClicked() == "Platnerz") platnerz.toggle();
                         if (menu.getLastClicked() == "Wiedzma") wiedzma.toggle();
@@ -147,33 +125,34 @@ int main()
         if (currentState == GameState::WALKA)
         {
             player.update(dt, window, bullets, splashes, enemies);
-            resolveCollision(player.pos, 14.f, gridWalls);
+            collision(player.pos, 14.f, gridWalls);
 
             if (player.hp <= 0.f) {
-                player.hp = 100.f;
-                player.pos = sf::Vector2f(400.f, 500.f);
+                player.hp = player.maxHp;
+                player.pos = sf::Vector2f(400.f, 530.f);
             }
+
+            std::vector<std::unique_ptr<Enemy>> newSpawns;
 
             for (auto& e : enemies) {
                 e->update(dt, player.pos, player.hp, gridWalls, bullets, splashes);
-                resolveCollision(e->pos, 14.f, gridWalls);
+                collision(e->pos, e->shape.getRadius(), gridWalls);
             }
 
-            resolveEnemyCollisions(enemies);
+            enemyCollisions(enemies);
+            playerEnemyCollisions(player.pos, 16.f, enemies);
 
+            player.shape.setPosition(player.pos);
             for (auto& e : enemies) e->shape.setPosition(e->pos);
+
             for (auto& b : bullets) b.update(dt, visualWalls);
             for (auto& s : splashes) s.update(dt);
 
-            for (auto& b : bullets) {
-                if (b.lifetime <= 0.f && b.isSplashProjectile) {
-                    splashes.emplace_back(b.pos, b.isFireSplash);
-                }
-            }
+            cleanupCombat(enemies, bullets, splashes, newSpawns);
 
-            bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) { return b.lifetime <= 0.f; }), bullets.end());
-            splashes.erase(std::remove_if(splashes.begin(), splashes.end(), [](const Splash& s) { return s.lifetime <= 0.f; }), splashes.end());
-            enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [](const std::unique_ptr<Enemy>& e) { return e->hp <= 0.f; }), enemies.end());
+            for (auto& newE : newSpawns) {
+                enemies.push_back(std::move(newE));
+            }
         }
 
         if (currentState == GameState::MIASTO)
@@ -188,7 +167,6 @@ int main()
         else if (currentState == GameState::WALKA)
         {
             window.clear(sf::Color(40, 40, 40));
-
             for (const auto& wall : visualWalls) window.draw(wall);
             for (auto& s : splashes) s.draw(window);
             for (auto& e : enemies) e->draw(window);
