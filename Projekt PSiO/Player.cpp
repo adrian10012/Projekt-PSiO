@@ -16,41 +16,28 @@ Player::Player() {
 }
 
 void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes, std::vector<std::unique_ptr<Enemy>>& enemies) {
-    //Naliczanie bonusow z armorow i broni
     finalDamage = baseDamage;
     finalArmor = baseArmor;
 
-    if (inventory.bron)
-        finalDamage += inventory.bron->get_damage();
+    if (inventory.bron) finalDamage += inventory.bron->get_damage();
+    if (inventory.helm) finalArmor += inventory.helm->get_damage();
+    if (inventory.klata) finalArmor += inventory.klata->get_damage();
+    if (inventory.spodnie) finalArmor += inventory.spodnie->get_damage();
+    if (inventory.buty) finalArmor += inventory.buty->get_damage();
 
-    if (inventory.helm)
-        finalArmor += inventory.helm->get_damage();
-
-    if (inventory.klata)
-        finalArmor += inventory.klata->get_damage();
-
-    if (inventory.spodnie)
-        finalArmor += inventory.spodnie->get_damage();
-
-    if (inventory.buty)
-        finalArmor += inventory.buty->get_damage();
-    
-    
-    // Ruch
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) pos.y -= speed * dt;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) pos.y += speed * dt;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) pos.x -= speed * dt;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) pos.x += speed * dt;
     shape.setPosition(pos);
 
-    // Odliczanie czasu
     if (attackCooldown > 0.f) attackCooldown -= dt;
     if (swordAnimTimer > 0.f) swordAnimTimer -= dt;
     if (meleeCooldown > 0.f) meleeCooldown -= dt;
 
     // Atak wrêcz
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && meleeCooldown <= 0.f) {
-        swordAnimTimer = 0.30f; // lub 0.15f, w zale¿noœci co ostatecznie wybra³eœ
+        swordAnimTimer = 0.30f;
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
         sf::Vector2f aimDir = sf::Vector2f(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)) - pos;
         swordAttackAngle = std::atan2(aimDir.y, aimDir.x) * 180.f / 3.14159f;
@@ -62,13 +49,12 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
             if (dist < 60.f) {
                 float enemyAngle = std::atan2(dir.y, dir.x) * 180.f / 3.14159f;
                 float angleDiff = std::abs(enemyAngle - swordAttackAngle);
-
-                if (angleDiff > 180.f) {
-                    angleDiff = 360.f - angleDiff;
-                }
+                if (angleDiff > 180.f) angleDiff = 360.f - angleDiff;
 
                 if (angleDiff <= 45.f) {
-                    e->hp -= 50.f;
+                    if (!e->isInvulnerable) {
+                        e->hp -= finalDamage;
+                    }
                 }
             }
         }
@@ -90,7 +76,8 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
     for (auto& b : bullets) {
         if (b.lifetime <= 0.f || !b.isEnemy || b.isSplashProjectile) continue;
         if (shape.getGlobalBounds().intersects(b.shape.getGlobalBounds())) {
-            hp -= b.damage;
+            float damageTaken = std::max(1.f, b.damage - finalArmor);
+            hp -= damageTaken;
             b.lifetime = 0.f;
         }
     }
@@ -98,7 +85,12 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
     // Obra¿enia splash
     for (const auto& s : splashes) {
         if (shape.getGlobalBounds().intersects(s.shape.getGlobalBounds())) {
-            hp -= 20.f * dt;
+            if (s.isFire) {
+                hp -= 200.f * dt;
+            }
+            else {
+                hp -= 15.f * dt;
+            }
         }
     }
 }
@@ -106,19 +98,15 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
 void Player::draw(sf::RenderWindow& window) {
     window.draw(shape);
 
-    // Pasek HP
     sf::RectangleShape hpBg(sf::Vector2f(40.f, 5.f));
     hpBg.setFillColor(sf::Color::Red);
     hpBg.setPosition(pos.x - 20.f, pos.y - shape.getRadius() - 15.f);
-
-    sf::RectangleShape hpFg(sf::Vector2f(40.f * std::max(0.f, hp / 100.f), 5.f));
+    sf::RectangleShape hpFg(sf::Vector2f(40.f * std::max(0.f, hp / maxHp), 5.f));
     hpFg.setFillColor(sf::Color::Green);
     hpFg.setPosition(pos.x - 20.f, pos.y - shape.getRadius() - 15.f);
-
     window.draw(hpBg);
     window.draw(hpFg);
 
-    // Animacja miecza
     if (swordAnimTimer > 0.f) {
         float progress = 1.0f - (swordAnimTimer / 0.3f);
         float swingAngle = -45.f + (progress * 90.f);
