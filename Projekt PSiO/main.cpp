@@ -34,8 +34,8 @@ int main()
     Menu menu({ 150, 80 }, { 600, 400 }, font);
     Ekwipunek ekwipunek(font, &player);
     Platnerz platnerz(font, &player);
-    Wiedzma wiedzma(font);
-    Kowal kowal(font);
+    Wiedzma wiedzma(font, &player);
+    Kowal kowal(font, &player);
 
     player.pos = sf::Vector2f(400.f, 530.f);
     player.maxHp = 100.f;

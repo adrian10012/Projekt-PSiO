@@ -26,7 +26,7 @@ private:
     sf::Vector2f size;
 
     sf::RectangleShape background;
-    sf::RectangleShape close_button;
+    //sf::RectangleShape close_button;
 
     sf::Font& font;
 

@@ -62,28 +62,28 @@ void Platnerz::handleClick(sf::Vector2i mouse) {
     }
 
     if (helm1.rect.getGlobalBounds().contains(mouse.x, mouse.y))
-        player->inventory.equipArmor(std::make_unique<KiepskiHelm>());
+        player->inventory.addToFreeSlot(std::make_unique<KiepskiHelm>());
 
     if (helm2.rect.getGlobalBounds().contains(mouse.x, mouse.y))
-        player->inventory.equipArmor(std::make_unique<WybornyHelm>());
+        player->inventory.addToFreeSlot(std::make_unique<WybornyHelm>());
 
     if (chest1.rect.getGlobalBounds().contains(mouse.x, mouse.y))
-        player->inventory.equipArmor(std::make_unique<MizernyNapiersnik>());
+        player->inventory.addToFreeSlot(std::make_unique<MizernyNapiersnik>());
 
     if (chest2.rect.getGlobalBounds().contains(mouse.x, mouse.y))
-        player->inventory.equipArmor(std::make_unique<DobryNapiersnik>());
+        player->inventory.addToFreeSlot(std::make_unique<DobryNapiersnik>());
 
     if (buty1.rect.getGlobalBounds().contains(mouse.x, mouse.y))
-        player->inventory.equipArmor(std::make_unique<Trzewiki>());
+        player->inventory.addToFreeSlot(std::make_unique<Trzewiki>());
 
     if (buty2.rect.getGlobalBounds().contains(mouse.x, mouse.y))
-        player->inventory.equipArmor(std::make_unique<WygodneOnuce>());
+        player->inventory.addToFreeSlot(std::make_unique<WygodneOnuce>());
 
     if (spodnie1.rect.getGlobalBounds().contains(mouse.x, mouse.y))
-        player->inventory.equipArmor(std::make_unique<BrudneSpodnie>());
+        player->inventory.addToFreeSlot(std::make_unique<BrudneSpodnie>());
 
     if (spodnie2.rect.getGlobalBounds().contains(mouse.x, mouse.y))
-        player->inventory.equipArmor(std::make_unique<PancerneSpodnie>());
+        player->inventory.addToFreeSlot(std::make_unique<PancerneSpodnie>());
 }
 
 void Platnerz::createSlot(Slot& slot, const std::string& name, int col, int row) {

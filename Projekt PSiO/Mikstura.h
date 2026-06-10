@@ -1,24 +1,27 @@
 #pragma once
 #include <string>
+#include "Item.h"
 
-class Mikstura
+class Mikstura : public Item
 {
 protected:
-    std::string nazwa;
     int wartosc;
     float czas;
 
 public:
     Mikstura(const std::string& n, int w, float c)
-        : nazwa(n), wartosc(w), czas(c) {
+        : Item(n, "Mikstura"), wartosc(w), czas(c)
+    {
     }
 
     virtual ~Mikstura() = default;
 
-    std::string getNazwa() const { return nazwa; }
+    std::string getNazwa() const { return Item::nazwa; }
     int getWartosc() const { return wartosc; }
     float getCzas() const { return czas; }
 };
+
+// --- KONKRETNE MIKSTURY ---
 
 class MalaMiksturaZdrowia : public Mikstura
 {

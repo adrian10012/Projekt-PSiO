@@ -2,9 +2,11 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
+class Player;
+
 class Wiedzma {
 public:
-    Wiedzma(sf::Font& font);
+    Wiedzma(sf::Font& font, Player* p);
 
     void draw(sf::RenderWindow& window);
     void toggle();
@@ -21,6 +23,7 @@ private:
     void drawSlot(sf::RenderWindow& window, Slot& slot);
 
     sf::Font& font;
+    Player* player;
     bool open;
 
     sf::RectangleShape background;

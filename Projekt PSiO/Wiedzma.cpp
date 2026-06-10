@@ -1,7 +1,9 @@
 #include "Wiedzma.h"
+#include "Player.h"
+#include "Mikstura.h"
 
-Wiedzma::Wiedzma(sf::Font& font)
-    : font(font), open(false)
+Wiedzma::Wiedzma(sf::Font& font, Player* p)
+    : font(font), player(p), open(false)
 {
     background.setSize({ 500, 400 });
     background.setFillColor(sf::Color(40, 40, 40, 230));
@@ -58,6 +60,30 @@ void Wiedzma::handleClick(sf::Vector2i mouse) {
         open = false;
         return;
     }
+
+    if (pot_hp_small.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.addToFreeSlot(std::make_unique<MalaMiksturaZdrowia>());
+
+    if (pot_hp_big.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.addToFreeSlot(std::make_unique<DuzaMiksturaZdrowia>());
+
+    if (pot_rhp_small.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.addToFreeSlot(std::make_unique<MalaMiksturaRegeneracjiZdrowia>());
+
+    if (pot_rhp_big.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.addToFreeSlot(std::make_unique<DuzaMiksturaRegeneracjiZdrowia>());
+
+    if (pot_str_small.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.addToFreeSlot(std::make_unique<MalaMiksturaSily>());
+
+    if (pot_str_big.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.addToFreeSlot(std::make_unique<DuzaMiksturaSily>());
+
+    if (pot_arm_small.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.addToFreeSlot(std::make_unique<MalaMiksturaArmora>());
+
+    if (pot_arm_big.rect.getGlobalBounds().contains(mouse.x, mouse.y))
+        player->inventory.addToFreeSlot(std::make_unique<DuzaMiksturaArmora>());
 }
 
 void Wiedzma::createSlot(Slot& slot, const std::string& name, int col, int row) {

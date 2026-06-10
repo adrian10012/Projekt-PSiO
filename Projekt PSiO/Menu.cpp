@@ -8,9 +8,9 @@ Menu::Menu(sf::Vector2f pos, sf::Vector2f size, sf::Font& font)
     background.setPosition(pos);
     background.setFillColor(sf::Color(50, 50, 50, 230));
 
-    close_button.setSize({ 40, 40 });
-    close_button.setFillColor(sf::Color(180, 40, 40));
-    close_button.setPosition(pos.x + size.x - 50, pos.y + 10);
+    //close_button.setSize({ 40, 40 });
+    //close_button.setFillColor(sf::Color(180, 40, 40));
+    //close_button.setPosition(pos.x + size.x - 50, pos.y + 10);
 
     createTile("Ekwipunek", 0);
     createTile("Kowal", 1);
@@ -22,7 +22,7 @@ void Menu::draw(sf::RenderWindow& window) {
     if (!is_open) return;
 
     window.draw(background);
-    window.draw(close_button);
+    //window.draw(close_button);
 
     for (auto& t : tiles) {
         window.draw(t.rect);
@@ -33,11 +33,11 @@ void Menu::draw(sf::RenderWindow& window) {
 void Menu::handleClick(sf::Vector2i mouse) {
     if (!is_open) return;
 
-    if (close_button.getGlobalBounds().contains(mouse.x, mouse.y)) {
+    /*if (close_button.getGlobalBounds().contains(mouse.x, mouse.y)) {
         is_open = false;
         last_clicked.clear();
         return;
-    }
+    }*/
 
     for (auto& t : tiles) {
         if (t.rect.getGlobalBounds().contains(mouse.x, mouse.y)) {

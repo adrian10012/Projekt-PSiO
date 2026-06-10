@@ -32,5 +32,8 @@ private:
 
     Slot helm, chestplate, spodnie, buty;
     Slot miecz, eliksir;
+
     Slot extra1, extra2, extra3, extra4, extra5, extra6;
+
+    int draggedIndex = -1;
 };
