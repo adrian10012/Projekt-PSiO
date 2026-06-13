@@ -4,7 +4,7 @@
 #include <memory>
 #include <cmath>
 #include <algorithm>
-#include "Enemy.h" 
+#include "Enemy.h"
 
 inline void collision(sf::Vector2f& pos, float radius, const std::vector<std::vector<bool>>& gridWalls) {
     if (pos.x < radius) pos.x = radius;
@@ -30,10 +30,9 @@ inline void collision(sf::Vector2f& pos, float radius, const std::vector<std::ve
 
                 float distanceX = pos.x - closestX;
                 float distanceY = pos.y - closestY;
-                float distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
+                float distance = std::sqrt((distanceX * distanceX) + (distanceY * distanceY));
 
-                if (distanceSquared < (radius * radius)) {
-                    float distance = std::sqrt(distanceSquared);
+                if (distance < radius) {
                     if (distance == 0.f) { distanceX = 1.f; distanceY = 0.f; distance = 1.f; }
                     float overlap = radius - distance;
                     pos.x += (distanceX / distance) * overlap;
@@ -47,16 +46,20 @@ inline void collision(sf::Vector2f& pos, float radius, const std::vector<std::ve
 inline void enemyCollisions(std::vector<std::unique_ptr<Enemy>>& enemies) {
     for (size_t i = 0; i < enemies.size(); i++) {
         for (size_t j = i + 1; j < enemies.size(); j++) {
-            sf::Vector2f diff = enemies[i]->pos - enemies[j]->pos;
+            sf::Vector2f posI = enemies[i]->getPos();
+            sf::Vector2f posJ = enemies[j]->getPos();
+            sf::Vector2f diff = posI - posJ;
+
             float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
-            float minDist = enemies[i]->shape.getRadius() + enemies[j]->shape.getRadius();
+            float minDist = enemies[i]->getShape().getRadius() + enemies[j]->getShape().getRadius();
 
             if (dist < minDist) {
                 if (dist == 0.f) { diff = sf::Vector2f(1.f, 0.f); dist = 1.f; }
                 float overlap = minDist - dist;
                 sf::Vector2f push = (diff / dist) * (overlap * 0.5f);
-                enemies[i]->pos += push;
-                enemies[j]->pos -= push;
+
+                enemies[i]->setPos(posI + push);
+                enemies[j]->setPos(posJ - push);
             }
         }
     }
@@ -64,9 +67,10 @@ inline void enemyCollisions(std::vector<std::unique_ptr<Enemy>>& enemies) {
 
 inline void playerEnemyCollisions(sf::Vector2f& playerPos, float playerRadius, std::vector<std::unique_ptr<Enemy>>& enemies) {
     for (auto& e : enemies) {
-        sf::Vector2f diff = playerPos - e->pos;
+        sf::Vector2f ePos = e->getPos();
+        sf::Vector2f diff = playerPos - ePos;
         float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
-        float minDist = playerRadius + e->shape.getRadius();
+        float minDist = playerRadius + e->getShape().getRadius();
 
         if (dist < minDist) {
             if (dist == 0.f) {
@@ -76,7 +80,7 @@ inline void playerEnemyCollisions(sf::Vector2f& playerPos, float playerRadius, s
             float overlap = minDist - dist;
             sf::Vector2f push = (diff / dist) * (overlap * 0.5f);
             playerPos += push;
-            e->pos -= push;
+            e->setPos(ePos - push);
         }
     }
 }

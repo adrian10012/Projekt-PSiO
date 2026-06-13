@@ -2,7 +2,6 @@
 #include <cmath>
 #include <queue>
 
-
 Enemy::Enemy(sf::Vector2f startPos, sf::Color color, float s, float startCooldown, float maxHpValue, float radius) {
     pos = startPos;
     speed = s;
@@ -14,6 +13,18 @@ Enemy::Enemy(sf::Vector2f startPos, sf::Color color, float s, float startCooldow
     shape.setOrigin(radius, radius);
     shape.setFillColor(color);
 }
+
+sf::Vector2f Enemy::getPos() const { return pos; }
+float Enemy::getHp() const { return hp; }
+sf::CircleShape Enemy::getShape() const { return shape; }
+bool Enemy::getIsInvulnerable() const { return isInvulnerable; }
+
+void Enemy::setPos(sf::Vector2f newPos) {
+    pos = newPos;
+    shape.setPosition(pos);
+}
+void Enemy::setHp(float newHp) { hp = newHp; }
+
 
 void Enemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
     if (attackCooldown > 0.f) attackCooldown -= dt;
@@ -33,12 +44,10 @@ void Enemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std:
     shape.setPosition(pos);
 
     for (auto& b : bullets) {
-        if (b.lifetime <= 0.f || b.isEnemy || b.isSplashProjectile) continue;
-        if (shape.getGlobalBounds().intersects(b.shape.getGlobalBounds())) {
-            if (!isInvulnerable) {
-                hp -= b.damage;
-            }
-            b.lifetime = 0.f;
+        if (b.getLifetime() <= 0.f || b.getIsEnemy() || b.getIsSplash()) continue;
+        if (shape.getGlobalBounds().intersects(b.getShape().getGlobalBounds())) {
+            if (!isInvulnerable) hp -= b.getDamage();
+            b.setLifetime(0.f);
         }
     }
 }
@@ -120,12 +129,14 @@ MeleeEnemy::MeleeEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, floa
     swordShape.setOrigin(0.f, radius / 4.f);
     swordShape.setFillColor(sf::Color(255, 150, 150));
 }
+
 sf::Vector2f MeleeEnemy::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
     sf::Vector2f dir = playerPos - pos;
     float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (dist > 0.f) { dir.x /= dist; dir.y /= dist; }
     return pos + (dir * 500.f);
 }
+
 void MeleeEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
     Enemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
     if (swordAnimTimer > 0.f) swordAnimTimer -= dt;
@@ -139,6 +150,7 @@ void MeleeEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const
         attackAngle = std::atan2(dir.y, dir.x) * 180.f / 3.14159f;
     }
 }
+
 void MeleeEnemy::draw(sf::RenderWindow& window) {
     Enemy::draw(window);
     if (swordAnimTimer > 0.f) {
@@ -150,8 +162,8 @@ void MeleeEnemy::draw(sf::RenderWindow& window) {
     }
 }
 
-ThrowerEnemy::ThrowerEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, bool fire, float cd)
-    : Enemy(startPos, color, s, cd, maxHp, radius), throwsFire(fire), attackResetTime(cd) {
+ThrowerEnemy::ThrowerEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, bool bomb, float cd)
+    : Enemy(startPos, color, s, cd, maxHp, radius), throwsBomb(bomb), attackResetTime(cd) {
 }
 
 sf::Vector2f ThrowerEnemy::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
@@ -163,6 +175,7 @@ sf::Vector2f ThrowerEnemy::idealTarget(sf::Vector2f playerPos, const std::vector
     if (state == 0) return pos - (dir * 500.f);
     return pos + (dir * 500.f);
 }
+
 void ThrowerEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
     Enemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
     if (attackCooldown <= 0.f) {
@@ -171,8 +184,7 @@ void ThrowerEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, con
         if (d > 0) { dir.x /= d; dir.y /= d; }
 
         float requiredSpeed = d / 0.6f;
-
-        bullets.emplace_back(pos, dir, 15.f, true, true, throwsFire, requiredSpeed, 6.f);
+        bullets.emplace_back(pos, dir, 15.f, true, true, throwsBomb, requiredSpeed, 6.f);
         attackCooldown = attackResetTime;
     }
 }
@@ -185,29 +197,35 @@ sf::Vector2f ShooterEnemy::idealTarget(sf::Vector2f playerPos, const std::vector
     sf::Vector2f dir = playerPos - pos;
     float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (dist > 0.f) { dir.x /= dist; dir.y /= dist; }
+
     sf::Vector2f moveDir(-dir.y * strafeSign, dir.x * strafeSign);
+
     if (dist > 200.f) moveDir += dir;
     else if (dist < 120.f) moveDir -= dir;
-    float mDist = std::sqrt(moveDir.x * moveDir.x + moveDir.y * moveDir.y);
-    if (mDist > 0.f) { moveDir.x /= mDist; moveDir.y /= mDist; }
+
+    float moveDirLength = std::sqrt(moveDir.x * moveDir.x + moveDir.y * moveDir.y);
+    if (moveDirLength > 0.f) { moveDir.x /= moveDirLength; moveDir.y /= moveDirLength; }
+
     sf::Vector2f checkPoint = pos + (moveDir * 30.f);
     if (!Sees(pos, checkPoint, gridWalls)) {
         strafeSign *= -1;
         moveDir = sf::Vector2f(-dir.y * strafeSign, dir.x * strafeSign);
+
         if (dist > 200.f) moveDir += dir;
         else if (dist < 120.f) moveDir -= dir;
-        mDist = std::sqrt(moveDir.x * moveDir.x + moveDir.y * moveDir.y);
-        if (mDist > 0.f) { moveDir.x /= mDist; moveDir.y /= mDist; }
+
+        moveDirLength = std::sqrt(moveDir.x * moveDir.x + moveDir.y * moveDir.y);
+        if (moveDirLength > 0.f) { moveDir.x /= moveDirLength; moveDir.y /= moveDirLength; }
     }
     return pos + (moveDir * 500.f);
 }
+
 void ShooterEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
     Enemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
     if (attackCooldown <= 0.f && Sees(pos, playerPos, gridWalls)) {
         sf::Vector2f dir = playerPos - pos;
         float d = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         if (d > 0) { dir.x /= d; dir.y /= d; }
-
         bullets.emplace_back(pos, dir, bulletDamage, true, false, false, bulletSpeed, 4.f);
         attackCooldown = attackResetTime;
     }
