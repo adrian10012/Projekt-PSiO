@@ -8,7 +8,7 @@ BossFirst::BossFirst(sf::Vector2f startPos)
 sf::Vector2f BossFirst::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
     if (state == 2) return pos + dashDir * 1000.f;
     if (state == 3 || state == 1) return pos;
-    return playerPos;
+    if (state == 0) return playerPos;
 }
 
 void BossFirst::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
@@ -63,7 +63,6 @@ void BossFirst::update(float dt, sf::Vector2f playerPos, float& playerHp, const 
     Enemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
 }
 
-
 BossSecond::BossSecond(sf::Vector2f startPos, int level)
     : Enemy(startPos, sf::Color(50, 200, 50),
         (level == 3) ? 140.f : (level == 2) ? 160.f : 200.f,
@@ -71,13 +70,15 @@ BossSecond::BossSecond(sf::Vector2f startPos, int level)
         (level == 3) ? 1500.f : (level == 2) ? 600.f : 200.f,
         (level == 3) ? 40.f : (level == 2) ? 25.f : 12.f) {
     splitLevel = level;
-    float wLen = (level == 3) ? 60.f : (level == 2) ? 40.f : 25.f;
-    float wThick = (level == 3) ? 16.f : (level == 2) ? 10.f : 6.f;
+    float weaponLen = (level == 3) ? 60.f : (level == 2) ? 40.f : 25.f;
+    float weaponThick = (level == 3) ? 16.f : (level == 2) ? 10.f : 6.f;
 
-    weapon.setSize(sf::Vector2f(wLen, wThick));
-    weapon.setOrigin(0.f, wThick / 2.f);
+    weapon.setSize(sf::Vector2f(weaponLen, weaponThick));
+    weapon.setOrigin(0.f, weaponThick / 2.f);
     weapon.setFillColor(sf::Color(120, 120, 120));
 }
+
+int BossSecond::getSplitLevel() const { return splitLevel; }
 
 sf::Vector2f BossSecond::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
     return playerPos;
@@ -105,20 +106,17 @@ void BossSecond::update(float dt, sf::Vector2f playerPos, float& playerHp, const
         float progress = 1.0f - (swingTimer / 0.4f);
         weaponAngle = baseAngle - 60.f + (progress * 120.f);
 
-        if (progress > 0.2f && progress < 0.8f && distToPlayer < hitDist) {
-            playerHp -= damage * dt;
-        }
+        if (progress > 0.2f && progress < 0.8f && distToPlayer < hitDist) playerHp -= damage * dt;
     }
-    else {
-        weaponAngle = baseAngle;
-    }
+    else weaponAngle = baseAngle;
 
     weapon.setPosition(pos);
     weapon.setRotation(weaponAngle);
     splashTimer -= dt;
+
     if (splashTimer <= 0.f) {
         bullets.emplace_back(pos, sf::Vector2f(0.f, 1.f), 0.f, true, true, false, 0.f, 1.f);
-        bullets.back().lifetime = 0.01f;
+        bullets.back().setLifetime(0.01f);
         splashTimer = (splitLevel == 3) ? 0.8f : (splitLevel == 2) ? 1.5f : 2.5f;
     }
 }

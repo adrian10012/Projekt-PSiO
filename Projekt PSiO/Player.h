@@ -9,7 +9,7 @@
 class Enemy;
 
 class Player {
-public:
+private:
     sf::Vector2f pos;
     float speed;
     sf::CircleShape shape;
@@ -20,6 +20,8 @@ public:
     float swordAnimTimer = 0.f;
     float swordAttackAngle = 0.f;
     sf::RectangleShape swordShape;
+
+public:
     Inventory inventory;
     float baseDamage = 10.f;
     float finalDamage = 10.f;
@@ -27,6 +29,15 @@ public:
     float finalArmor = 0.f;
 
     Player();
+
+    sf::Vector2f getPos() const;
+    float getSpeed() const;
+    float getHp() const;
+    sf::CircleShape getShape() const;
+
+    void setPos(sf::Vector2f newPos);
+    void setHp(float newHp);
+
     void update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes, std::vector<std::unique_ptr<Enemy>>& enemies);
     void draw(sf::RenderWindow& window);
 };

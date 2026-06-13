@@ -15,7 +15,19 @@ Player::Player() {
     swordShape.setFillColor(sf::Color(200, 200, 200));
 }
 
+sf::Vector2f Player::getPos() const { return pos; }
+float Player::getSpeed() const { return speed; }
+float Player::getHp() const { return hp; }
+sf::CircleShape Player::getShape() const { return shape; }
+
+void Player::setPos(sf::Vector2f newPos) {
+    pos = newPos;
+    shape.setPosition(pos);
+}
+void Player::setHp(float newHp) { hp = newHp; }
+
 void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes, std::vector<std::unique_ptr<Enemy>>& enemies) {
+
     finalDamage = baseDamage;
     finalArmor = baseArmor;
 
@@ -35,7 +47,6 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
     if (swordAnimTimer > 0.f) swordAnimTimer -= dt;
     if (meleeCooldown > 0.f) meleeCooldown -= dt;
 
-    // Atak wrêcz
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && meleeCooldown <= 0.f) {
         swordAnimTimer = 0.30f;
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
@@ -43,7 +54,7 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
         swordAttackAngle = std::atan2(aimDir.y, aimDir.x) * 180.f / 3.14159f;
 
         for (auto& e : enemies) {
-            sf::Vector2f dir = e->pos - pos;
+            sf::Vector2f dir = e->getPos() - pos;
             float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
 
             if (dist < 60.f) {
@@ -52,8 +63,8 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
                 if (angleDiff > 180.f) angleDiff = 360.f - angleDiff;
 
                 if (angleDiff <= 45.f) {
-                    if (!e->isInvulnerable) {
-                        e->hp -= finalDamage;
+                    if (!e->getIsInvulnerable()) {
+                        e->setHp(e->getHp() - finalDamage);
                     }
                 }
             }
@@ -61,7 +72,6 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
         meleeCooldown = 0.5f;
     }
 
-    // Strzelanie
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && attackCooldown <= 0.f) {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
         sf::Vector2f aimDir = sf::Vector2f(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)) - pos;
@@ -72,20 +82,22 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
         attackCooldown = 0.25f;
     }
 
-    // Obra¿enia pociski
     for (auto& b : bullets) {
-        if (b.lifetime <= 0.f || !b.isEnemy || b.isSplashProjectile) continue;
-        if (shape.getGlobalBounds().intersects(b.shape.getGlobalBounds())) {
-            float damageTaken = std::max(1.f, b.damage - finalArmor);
+        if (b.getLifetime() <= 0.f || !b.getIsEnemy() || b.getIsSplash()) continue;
+
+        if (shape.getGlobalBounds().intersects(b.getShape().getGlobalBounds())) {
+            float damageTaken = std::max(1.f, b.getDamage() - finalArmor);
             hp -= damageTaken;
-            b.lifetime = 0.f;
+            b.setLifetime(0.f);
         }
     }
 
-    // Obra¿enia splash
     for (const auto& s : splashes) {
-        if (shape.getGlobalBounds().intersects(s.shape.getGlobalBounds())) {
-            if (s.isFire) {
+        sf::Vector2f sPos = s.getPos();
+        float dist = std::sqrt((pos.x - sPos.x) * (pos.x - sPos.x) + (pos.y - sPos.y) * (pos.y - sPos.y));
+
+        if (dist < (shape.getRadius() + s.getCurrRadius())) {
+            if (s.getIsBomb()) {
                 hp -= 200.f * dt;
             }
             else {

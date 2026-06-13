@@ -2,17 +2,18 @@
 #include <SFML/Graphics.hpp>
 
 class Splash {
-public:
+private:
     sf::Vector2f pos;
-    float currentRadius;
+    float currRadius;
     float maxRadius;
     float lifetime;
-    bool isFire;
+    bool isBomb;
     sf::CircleShape shape;
 
-    Splash(sf::Vector2f p, bool fire) : pos(p), isFire(fire) {
-        currentRadius = 5.f;
-        if (isFire) {
+public:
+    Splash(sf::Vector2f p, bool bomb) : pos(p), isBomb(bomb) {
+        currRadius = 5.f;
+        if (isBomb) {
             maxRadius = 75.f;
             lifetime = 0.25f;
         }
@@ -20,18 +21,23 @@ public:
             maxRadius = 50.f;
             lifetime = 8.0f;
         }
-        shape.setFillColor(fire ? sf::Color(255, 80, 0, 200) : sf::Color(0, 255, 0, 120));
+        shape.setFillColor(isBomb ? sf::Color(255, 80, 0, 200) : sf::Color(0, 255, 0, 120));
         shape.setPosition(pos);
     }
 
+    sf::Vector2f getPos() const { return pos; }
+    float getCurrRadius() const { return currRadius; }
+    float getLifetime() const { return lifetime; }
+    bool getIsBomb() const { return isBomb; }
+
     void update(float dt) {
-        float growSpeed = isFire ? 800.f : 60.f;
-        if (currentRadius < maxRadius) {
-            currentRadius += growSpeed * dt;
-            if (currentRadius > maxRadius) currentRadius = maxRadius;
+        float growSpeed = isBomb ? 800.f : 60.f;
+        if (currRadius < maxRadius) {
+            currRadius += growSpeed * dt;
+            if (currRadius > maxRadius) currRadius = maxRadius;
         }
-        shape.setRadius(currentRadius);
-        shape.setOrigin(currentRadius, currentRadius);
+        shape.setRadius(currRadius);
+        shape.setOrigin(currRadius, currRadius);
         lifetime -= dt;
     }
 

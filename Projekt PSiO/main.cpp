@@ -3,7 +3,6 @@
 #include <memory>
 #include <cmath>
 #include <algorithm>
-
 #include "Player.h"
 #include "Enemy.h"
 #include "Boss.h"
@@ -11,7 +10,6 @@
 #include "Splash.h"
 #include "Collision.h"
 #include "CombatManager.h"
-
 #include "Menu.h"
 #include "Ekwipunek.h"
 #include "Platnerz.h"
@@ -36,10 +34,8 @@ int main()
     Platnerz platnerz(font, &player);
     Wiedzma wiedzma(font, &player);
     Kowal kowal(font, &player);
-
-    player.pos = sf::Vector2f(400.f, 530.f);
-    player.maxHp = 100.f;
-    player.hp = 100.f;
+    player.setPos(sf::Vector2f(400.f, 530.f));
+    player.setHp(100.f);
 
     std::vector<Bullet> bullets;
     std::vector<Splash> splashes;
@@ -101,6 +97,9 @@ int main()
                     if (event.key.code == sf::Keyboard::Num3) {
                         enemies.push_back(std::make_unique<BossThird>(sf::Vector2f(400.f, 150.f)));
                     }
+                    if (event.key.code == sf::Keyboard::M) {
+                        player.baseDamage *= 5.0f;
+                    }
                 }
             }
 
@@ -125,31 +124,35 @@ int main()
         if (currentState == GameState::WALKA)
         {
             player.update(dt, window, bullets, splashes, enemies);
-            collision(player.pos, 14.f, gridWalls);
 
-            if (player.hp <= 0.f) {
-                player.hp = player.maxHp;
-                player.pos = sf::Vector2f(400.f, 530.f);
+            sf::Vector2f pPos = player.getPos();
+            collision(pPos, 14.f, gridWalls);
+            player.setPos(pPos);
+
+            if (player.getHp() <= 0.f) {
+                player.setHp(100.f);
+                player.setPos(sf::Vector2f(400.f, 530.f));
             }
 
             std::vector<std::unique_ptr<Enemy>> newSpawns;
 
             for (auto& e : enemies) {
-                e->update(dt, player.pos, player.hp, gridWalls, bullets, splashes);
-                collision(e->pos, e->shape.getRadius(), gridWalls);
+                float currentHp = player.getHp();
+                e->update(dt, player.getPos(), currentHp, gridWalls, bullets, splashes);
+                player.setHp(currentHp);
+                sf::Vector2f ePos = e->getPos();
+                collision(ePos, e->getShape().getRadius(), gridWalls);
+                e->setPos(ePos);
             }
 
             enemyCollisions(enemies);
-            playerEnemyCollisions(player.pos, 16.f, enemies);
 
-            player.shape.setPosition(player.pos);
-            for (auto& e : enemies) e->shape.setPosition(e->pos);
-
+            sf::Vector2f playerCollisionPos = player.getPos();
+            playerEnemyCollisions(playerCollisionPos, 16.f, enemies);
+            player.setPos(playerCollisionPos);
             for (auto& b : bullets) b.update(dt, visualWalls);
             for (auto& s : splashes) s.update(dt);
-
             cleanupCombat(enemies, bullets, splashes, newSpawns);
-
             for (auto& newE : newSpawns) {
                 enemies.push_back(std::move(newE));
             }
