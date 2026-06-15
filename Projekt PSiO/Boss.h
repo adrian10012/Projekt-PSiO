@@ -28,16 +28,14 @@ public:
     void update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) override;
 };
 
-class BossThird : public Enemy {
+class BossThird : public ShooterEnemy {
 private:
     float dropTimer = 1.2f;
     float throwTimer = 2.5f;
     int attackPhase = 0;
-    float strafeSign = 1.f;
 
 public:
     BossThird(sf::Vector2f startPos);
 
-    sf::Vector2f idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) override;
     void update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) override;
 };

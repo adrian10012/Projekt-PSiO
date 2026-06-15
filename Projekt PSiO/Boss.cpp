@@ -97,19 +97,7 @@ void BossSecond::update(float dt, sf::Vector2f playerPos, float& playerHp, const
 }
 
 BossThird::BossThird(sf::Vector2f startPos)
-    : Enemy(startPos, sf::Color(255, 140, 0), 170.f, 0.f, 1800.f, 25.f) {
-}
-
-sf::Vector2f BossThird::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
-    sf::Vector2f dir = playerPos - pos;
-    float dist = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-    if (dist > 0.f) { dir.x /= dist; dir.y /= dist; }
-
-    sf::Vector2f strafe(-dir.y * strafeSign, dir.x * strafeSign);
-    if (dist < 200.f) strafe -= dir;
-    else if (dist > 350.f) strafe += dir;
-
-    return pos + strafe * 200.f;
+    : ShooterEnemy(startPos, sf::Color(255, 140, 0), 1800.f, 170.f, 25.f, 0.f, 0.f, 0.f) {
 }
 
 void BossThird::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {

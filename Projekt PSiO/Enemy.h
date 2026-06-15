@@ -38,7 +38,7 @@ public:
 };
 
 class MeleeEnemy : public Enemy {
-protected:
+protected: 
     float swordAnimTimer = 0.f;
     float attackAngle = 0.f;
     sf::RectangleShape swordShape;
