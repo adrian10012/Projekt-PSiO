@@ -47,7 +47,6 @@ protected:
 
 public:
     MeleeEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, float dmg, float cd);
-
     sf::Vector2f idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) override;
     void update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) override;
     void draw(sf::RenderWindow& window) override;

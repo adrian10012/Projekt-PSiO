@@ -64,67 +64,35 @@ void BossFirst::update(float dt, sf::Vector2f playerPos, float& playerHp, const 
 }
 
 BossSecond::BossSecond(sf::Vector2f startPos, int level)
-    : Enemy(startPos, sf::Color(50, 200, 50),
-        (level == 3) ? 140.f : (level == 2) ? 160.f : 200.f,
-        0.f,
+    : MeleeEnemy(startPos, sf::Color(50, 200, 50),
         (level == 3) ? 1500.f : (level == 2) ? 600.f : 200.f,
-        (level == 3) ? 40.f : (level == 2) ? 25.f : 12.f) {
+        (level == 3) ? 140.f : (level == 2) ? 160.f : 200.f,
+        (level == 3) ? 40.f : (level == 2) ? 25.f : 12.f,
+        (level == 3) ? 40.f : (level == 2) ? 25.f : 15.f,
+        1.2f)
+{
     splitLevel = level;
     float weaponLen = (level == 3) ? 60.f : (level == 2) ? 40.f : 25.f;
     float weaponThick = (level == 3) ? 16.f : (level == 2) ? 10.f : 6.f;
-
-    weapon.setSize(sf::Vector2f(weaponLen, weaponThick));
-    weapon.setOrigin(0.f, weaponThick / 2.f);
-    weapon.setFillColor(sf::Color(120, 120, 120));
+    swordShape.setSize(sf::Vector2f(weaponLen, weaponThick));
+    swordShape.setOrigin(0.f, weaponThick / 2.f);
+    swordShape.setFillColor(sf::Color(120, 120, 120));
 }
 
 int BossSecond::getSplitLevel() const { return splitLevel; }
 
 sf::Vector2f BossSecond::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
-    return playerPos;
+    return playerPos; 
 }
-
 void BossSecond::update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) {
-    Enemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
-    sf::Vector2f aimDir = playerPos - pos;
-    float baseAngle = std::atan2(aimDir.y, aimDir.x) * 180.f / 3.14159f;
 
-    if (swingCooldown > 0.f) swingCooldown -= dt;
+    MeleeEnemy::update(dt, playerPos, playerHp, gridWalls, bullets, splashes);
 
-    float distToPlayer = std::sqrt(aimDir.x * aimDir.x + aimDir.y * aimDir.y);
-    float triggerDist = (splitLevel == 3) ? 80.f : (splitLevel == 2) ? 60.f : 40.f;
-    float hitDist = (splitLevel == 3) ? 85.f : (splitLevel == 2) ? 65.f : 45.f;
-    float damage = (splitLevel == 3) ? 40.f : (splitLevel == 2) ? 25.f : 15.f;
-
-    if (distToPlayer < triggerDist && swingCooldown <= 0.f && swingTimer <= 0.f) {
-        swingTimer = 0.4f;
-        swingCooldown = 1.2f;
-    }
-
-    if (swingTimer > 0.f) {
-        swingTimer -= dt;
-        float progress = 1.0f - (swingTimer / 0.4f);
-        weaponAngle = baseAngle - 60.f + (progress * 120.f);
-
-        if (progress > 0.2f && progress < 0.8f && distToPlayer < hitDist) playerHp -= damage * dt;
-    }
-    else weaponAngle = baseAngle;
-
-    weapon.setPosition(pos);
-    weapon.setRotation(weaponAngle);
     splashTimer -= dt;
-
     if (splashTimer <= 0.f) {
         bullets.emplace_back(pos, sf::Vector2f(0.f, 1.f), 0.f, true, true, false, 0.f, 1.f);
         bullets.back().setLifetime(0.01f);
         splashTimer = (splitLevel == 3) ? 0.8f : (splitLevel == 2) ? 1.5f : 2.5f;
-    }
-}
-
-void BossSecond::draw(sf::RenderWindow& window) {
-    Enemy::draw(window);
-    if (swingTimer > 0.f) {
-        window.draw(weapon);
     }
 }
 
