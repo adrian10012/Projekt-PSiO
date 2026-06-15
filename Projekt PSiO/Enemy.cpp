@@ -1,13 +1,13 @@
 #include "Enemy.h"
 #include <cmath>
-#include <queue>
 
-Enemy::Enemy(sf::Vector2f startPos, sf::Color color, float s, float startCooldown, float maxHpValue, float radius) {
+Enemy::Enemy(sf::Vector2f startPos, sf::Color color, float s, float cooldownTime, float maxHpValue, float radius) {
     pos = startPos;
     speed = s;
     hp = maxHpValue;
     maxHp = maxHpValue;
-    attackCooldown = startCooldown;
+    attackResetTime = cooldownTime;
+    attackCooldown = 0.f;
 
     shape.setRadius(radius);
     shape.setOrigin(radius, radius);
@@ -124,7 +124,7 @@ sf::Vector2f Enemy::Dijkstra(sf::Vector2f targetPos, const std::vector<std::vect
 }
 
 MeleeEnemy::MeleeEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, float dmg, float cd)
-    : Enemy(startPos, color, s, 0.f, maxHp, radius), damage(dmg), attackResetTime(cd) {
+    : Enemy(startPos, color, s, cd, maxHp, radius), damage(dmg) {
     swordShape.setSize(sf::Vector2f(radius * 2.f, radius / 2.f));
     swordShape.setOrigin(0.f, radius / 4.f);
     swordShape.setFillColor(sf::Color(255, 150, 150));
@@ -163,7 +163,7 @@ void MeleeEnemy::draw(sf::RenderWindow& window) {
 }
 
 ThrowerEnemy::ThrowerEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, bool bomb, float cd)
-    : Enemy(startPos, color, s, cd, maxHp, radius), throwsBomb(bomb), attackResetTime(cd) {
+    : Enemy(startPos, color, s, cd, maxHp, radius), throwsBomb(bomb) {
 }
 
 sf::Vector2f ThrowerEnemy::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {
@@ -190,7 +190,7 @@ void ThrowerEnemy::update(float dt, sf::Vector2f playerPos, float& playerHp, con
 }
 
 ShooterEnemy::ShooterEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, float bSpeed, float bDmg, float cd)
-    : Enemy(startPos, color, s, cd, maxHp, radius), bulletSpeed(bSpeed), bulletDamage(bDmg), attackResetTime(cd) {
+    : Enemy(startPos, color, s, cd, maxHp, radius), bulletSpeed(bSpeed), bulletDamage(bDmg) {
 }
 
 sf::Vector2f ShooterEnemy::idealTarget(sf::Vector2f playerPos, const std::vector<std::vector<bool>>& gridWalls) {

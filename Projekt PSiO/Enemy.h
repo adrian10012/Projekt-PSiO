@@ -15,11 +15,12 @@ protected:
     float hp;
     float maxHp;
     float attackCooldown = 0.f;
+    float attackResetTime;
     sf::CircleShape shape;
     bool isInvulnerable = false;
 
 public:
-    Enemy(sf::Vector2f startPos, sf::Color color, float s, float startCooldown, float maxHpValue, float radius);
+    Enemy(sf::Vector2f startPos, sf::Color color, float s, float cooldownTime, float maxHpValue, float radius);
     virtual ~Enemy() = default;
 
     sf::Vector2f getPos() const;
@@ -38,12 +39,11 @@ public:
 };
 
 class MeleeEnemy : public Enemy {
-protected: 
+protected:
     float swordAnimTimer = 0.f;
     float attackAngle = 0.f;
     sf::RectangleShape swordShape;
     float damage;
-    float attackResetTime;
 
 public:
     MeleeEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, float dmg, float cd);
@@ -56,7 +56,6 @@ class ThrowerEnemy : public Enemy {
 protected:
     int state = 0;
     bool throwsBomb;
-    float attackResetTime;
 
 public:
     ThrowerEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, bool bomb, float cd);
@@ -70,7 +69,6 @@ protected:
     float strafeSign = 1.f;
     float bulletSpeed;
     float bulletDamage;
-    float attackResetTime;
 
 public:
     ShooterEnemy(sf::Vector2f startPos, sf::Color color, float maxHp, float s, float radius, float bSpeed, float bDmg, float cd);
