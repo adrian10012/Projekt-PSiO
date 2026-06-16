@@ -15,7 +15,7 @@ public:
 
 private:
     struct Slot {
-        sf::RectangleShape rect;
+        sf::FloatRect bounds;
         sf::Text label;
     };
 
@@ -26,8 +26,12 @@ private:
     Player* player;
     bool open;
 
-    sf::RectangleShape background;
-    sf::RectangleShape closeButton;
+    sf::Texture bgTex;
+    sf::Texture closeTex;
+    sf::Texture slotTex;
+
+    sf::FloatRect bgBounds;
+    sf::FloatRect closeBounds;
 
     Slot sword1, sword2, sword3, sword4;
 };

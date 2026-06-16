@@ -14,6 +14,28 @@ private:
     bool isSplash;
     bool isBomb;
     sf::RectangleShape shape;
+    sf::Sprite sprite;
+    bool hasSprite; // Flaga okreœlaj¹ca, czy u¿ywamy obrazka, czy kwadratu
+
+    static sf::Texture& getArrowTexture() {
+        static sf::Texture tex;
+        static bool loaded = false;
+        if (!loaded) {
+            tex.loadFromFile("textures/Arrow.png");
+            loaded = true;
+        }
+        return tex;
+    }
+
+    static sf::Texture& getOrbTexture() {
+        static sf::Texture tex;
+        static bool loaded = false;
+        if (!loaded) {
+            tex.loadFromFile("textures/particles/1104.png");
+            loaded = true;
+        }
+        return tex;
+    }
 
 public:
     Bullet(sf::Vector2f p, sf::Vector2f dir, float dmg, bool enemy, bool splash, bool bomb, float speed, float radius)
@@ -22,19 +44,55 @@ public:
         vel = dir * speed;
         maxLifetime = splash ? 0.6f : 1.5f;
         lifetime = maxLifetime;
+        hasSprite = false;
 
         if (splash) {
-            shape.setSize(sf::Vector2f(16.f, 16.f));
-            shape.setOrigin(8.f, 8.f);
-            shape.setFillColor(isBomb ? sf::Color(255, 60, 0) : sf::Color(0, 220, 0));
+            if (isBomb) {
+                // Lec¹ca bomba u¿ywa kuli ognia
+                hasSprite = true;
+                shape.setSize(sf::Vector2f(16.f, 16.f));
+                shape.setOrigin(8.f, 8.f);
+                shape.setFillColor(sf::Color::Transparent);
+
+                sf::Texture& tex = getOrbTexture();
+                sprite.setTexture(tex);
+
+                int w = tex.getSize().x / 7;
+                int h = tex.getSize().y / 9;
+
+                sprite.setTextureRect(sf::IntRect(1 * w, 0, w, h));
+                sprite.setOrigin(w / 2.f, h / 2.f);
+
+                float scale = 32.f / w;
+                sprite.setScale(scale, scale);
+            }
+            else {
+                // Lec¹ca trucizna - stary, zielony kwadrat
+                shape.setSize(sf::Vector2f(16.f, 16.f));
+                shape.setOrigin(8.f, 8.f);
+                shape.setFillColor(sf::Color(0, 220, 0));
+            }
         }
         else {
             shape.setSize(sf::Vector2f(radius * 2.f, radius * 2.f));
             shape.setOrigin(radius, radius);
-            shape.setFillColor(isEnemy ? sf::Color::Yellow : sf::Color::Cyan);
-
             float angle = std::atan2(dir.y, dir.x) * 180.f / 3.14159f;
             shape.setRotation(angle);
+
+            if (!isEnemy) {
+                // Strza³a Gracza
+                hasSprite = true;
+                shape.setFillColor(sf::Color::Transparent);
+                sf::Texture& tex = getArrowTexture();
+                sprite.setTexture(tex);
+                sf::FloatRect bounds = sprite.getLocalBounds();
+                sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+                sprite.setRotation(angle);
+            }
+            else {
+                // Zwyk³y pocisk wroga (wraca do ¿ó³tego)
+                shape.setFillColor(sf::Color::Yellow);
+            }
         }
     }
 
@@ -57,11 +115,22 @@ public:
         if (isSplash) {
             float progress = 1.0f - (lifetime / maxLifetime);
             float arcHeight = std::sin(progress * 3.14159f) * 120.f;
+
             shape.setPosition(pos.x, pos.y - arcHeight);
-            shape.rotate(360.f * dt);
+            if (hasSprite) {
+                sprite.setPosition(pos.x, pos.y - arcHeight);
+                sprite.rotate(720.f * dt); // Obrót magicznej kuli
+            }
+            else {
+                shape.rotate(360.f * dt); // Obrót lec¹cej trucizny
+            }
         }
         else {
             shape.setPosition(pos);
+            if (hasSprite) {
+                sprite.setPosition(pos);
+            }
+
             for (const auto& wall : walls) {
                 if (wall.getGlobalBounds().intersects(shape.getGlobalBounds())) {
                     lifetime = 0.f;
@@ -72,6 +141,11 @@ public:
     }
 
     void draw(sf::RenderWindow& window) {
-        window.draw(shape);
+        if (hasSprite) {
+            window.draw(sprite);
+        }
+        else {
+            window.draw(shape);
+        }
     }
 };

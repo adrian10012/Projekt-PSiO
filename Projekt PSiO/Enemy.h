@@ -77,32 +77,251 @@ public:
     void update(float dt, sf::Vector2f playerPos, float& playerHp, const std::vector<std::vector<bool>>& gridWalls, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes) override;
 };
 
+
 class FirstMeleeEnemy : public MeleeEnemy {
+private:
+    sf::Sprite sprite;
+    sf::Clock animClock;
+    int currentFrame = 0;
+    float frameTimer = 0.f;
+    float frameDuration = 0.15f;
+
+    static sf::Texture& getTexture() {
+        static sf::Texture tex;
+        static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/moby/OchreJelly.png"); loaded = true; }
+        return tex;
+    }
 public:
     FirstMeleeEnemy(sf::Vector2f startPos);
+    void draw(sf::RenderWindow& window) override {
+        sf::Texture& tex = getTexture();
+        sprite.setTexture(tex);
+        int w = tex.getSize().x / 4;
+        int h = tex.getSize().y;
+        float dt = animClock.restart().asSeconds();
+        frameTimer += dt;
+        if (frameTimer >= frameDuration) {
+            frameTimer = 0.f;
+            currentFrame = (currentFrame + 1) % 4;
+        }
+        sprite.setTextureRect(sf::IntRect(currentFrame * w, 0, w, h));
+        float scale = (shape.getRadius() * 2.5f) / w;
+        sprite.setScale(scale, scale);
+        sprite.setOrigin(w / 2.f, h / 2.f);
+        sprite.setPosition(pos);
+        window.draw(sprite);
+
+        sf::Color oldColor = shape.getFillColor();
+        shape.setFillColor(sf::Color::Transparent);
+        MeleeEnemy::draw(window);
+        shape.setFillColor(oldColor);
+    }
 };
 
 class SecondMeleeEnemy : public MeleeEnemy {
+private:
+    sf::Sprite sprite;
+    sf::Clock animClock;
+    int currentFrame = 0;
+    float frameTimer = 0.f;
+    float frameDuration = 0.15f;
+
+    static sf::Texture& getTexture() {
+        static sf::Texture tex;
+        static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/moby/RedCap.png"); loaded = true; }
+        return tex;
+    }
 public:
     SecondMeleeEnemy(sf::Vector2f startPos);
+    void draw(sf::RenderWindow& window) override {
+        sf::Texture& tex = getTexture();
+        sprite.setTexture(tex);
+        int w = tex.getSize().x / 4;
+        int h = tex.getSize().y;
+        float dt = animClock.restart().asSeconds();
+        frameTimer += dt;
+        if (frameTimer >= frameDuration) {
+            frameTimer = 0.f;
+            currentFrame = (currentFrame + 1) % 4;
+        }
+        sprite.setTextureRect(sf::IntRect(currentFrame * w, 0, w, h));
+        float scale = (shape.getRadius() * 2.5f) / w;
+        sprite.setScale(scale, scale);
+        sprite.setOrigin(w / 2.f, h / 2.f);
+        sprite.setPosition(pos);
+        window.draw(sprite);
+
+        sf::Color oldColor = shape.getFillColor();
+        shape.setFillColor(sf::Color::Transparent);
+        MeleeEnemy::draw(window);
+        shape.setFillColor(oldColor);
+    }
 };
 
 class FirstThrowerEnemy : public ThrowerEnemy {
+private:
+    sf::Sprite sprite;
+    sf::Clock animClock;
+    int currentFrame = 0;
+    float frameTimer = 0.f;
+    float frameDuration = 0.15f;
+
+    static sf::Texture& getTexture() {
+        static sf::Texture tex;
+        static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/moby/OchreJelly.png"); loaded = true; }
+        return tex;
+    }
 public:
     FirstThrowerEnemy(sf::Vector2f startPos);
+    void draw(sf::RenderWindow& window) override {
+        sf::Texture& tex = getTexture();
+        sprite.setTexture(tex);
+        sprite.setColor(sf::Color(180, 255, 180)); // Zielonkawy odcieñ dla rozró¿nienia
+        int w = tex.getSize().x / 4;
+        int h = tex.getSize().y;
+        float dt = animClock.restart().asSeconds();
+        frameTimer += dt;
+        if (frameTimer >= frameDuration) {
+            frameTimer = 0.f;
+            currentFrame = (currentFrame + 1) % 4;
+        }
+        sprite.setTextureRect(sf::IntRect(currentFrame * w, 0, w, h));
+        float scale = (shape.getRadius() * 2.5f) / w;
+        sprite.setScale(scale, scale);
+        sprite.setOrigin(w / 2.f, h / 2.f);
+        sprite.setPosition(pos);
+        window.draw(sprite);
+
+        sf::Color oldColor = shape.getFillColor();
+        shape.setFillColor(sf::Color::Transparent);
+        Enemy::draw(window);
+        shape.setFillColor(oldColor);
+    }
 };
 
 class SecondThrowerEnemy : public ThrowerEnemy {
+private:
+    sf::Sprite sprite;
+    sf::Clock animClock;
+    int currentFrame = 0;
+    float frameTimer = 0.f;
+    float frameDuration = 0.15f;
+
+    static sf::Texture& getTexture() {
+        static sf::Texture tex;
+        static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/moby/RedCap.png"); loaded = true; }
+        return tex;
+    }
 public:
     SecondThrowerEnemy(sf::Vector2f startPos);
+    void draw(sf::RenderWindow& window) override {
+        sf::Texture& tex = getTexture();
+        sprite.setTexture(tex);
+        sprite.setColor(sf::Color(180, 180, 255)); // Niebieskawy odcieñ dla rozró¿nienia
+        int w = tex.getSize().x / 4;
+        int h = tex.getSize().y;
+        float dt = animClock.restart().asSeconds();
+        frameTimer += dt;
+        if (frameTimer >= frameDuration) {
+            frameTimer = 0.f;
+            currentFrame = (currentFrame + 1) % 4;
+        }
+        sprite.setTextureRect(sf::IntRect(currentFrame * w, 0, w, h));
+        float scale = (shape.getRadius() * 2.5f) / w;
+        sprite.setScale(scale, scale);
+        sprite.setOrigin(w / 2.f, h / 2.f);
+        sprite.setPosition(pos);
+        window.draw(sprite);
+
+        sf::Color oldColor = shape.getFillColor();
+        shape.setFillColor(sf::Color::Transparent);
+        Enemy::draw(window);
+        shape.setFillColor(oldColor);
+    }
 };
 
 class FirstShooterEnemy : public ShooterEnemy {
+private:
+    sf::Sprite sprite;
+    sf::Clock animClock;
+    int currentFrame = 0;
+    float frameTimer = 0.f;
+    float frameDuration = 0.15f;
+
+    static sf::Texture& getTexture() {
+        static sf::Texture tex;
+        static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/moby/BloodshotEye.png"); loaded = true; }
+        return tex;
+    }
 public:
     FirstShooterEnemy(sf::Vector2f startPos);
+    void draw(sf::RenderWindow& window) override {
+        sf::Texture& tex = getTexture();
+        sprite.setTexture(tex);
+        int w = tex.getSize().x / 4;
+        int h = tex.getSize().y;
+        float dt = animClock.restart().asSeconds();
+        frameTimer += dt;
+        if (frameTimer >= frameDuration) {
+            frameTimer = 0.f;
+            currentFrame = (currentFrame + 1) % 4;
+        }
+        sprite.setTextureRect(sf::IntRect(currentFrame * w, 0, w, h));
+        float scale = (shape.getRadius() * 2.5f) / w;
+        sprite.setScale(scale, scale);
+        sprite.setOrigin(w / 2.f, h / 2.f);
+        sprite.setPosition(pos);
+        window.draw(sprite);
+
+        sf::Color oldColor = shape.getFillColor();
+        shape.setFillColor(sf::Color::Transparent);
+        Enemy::draw(window);
+        shape.setFillColor(oldColor);
+    }
 };
 
 class SecondShooterEnemy : public ShooterEnemy {
+private:
+    sf::Sprite sprite;
+    sf::Clock animClock;
+    int currentFrame = 0;
+    float frameTimer = 0.f;
+    float frameDuration = 0.15f;
+
+    static sf::Texture& getTexture() {
+        static sf::Texture tex;
+        static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/moby/OcularWatcher.png"); loaded = true; }
+        return tex;
+    }
 public:
     SecondShooterEnemy(sf::Vector2f startPos);
+    void draw(sf::RenderWindow& window) override {
+        sf::Texture& tex = getTexture();
+        sprite.setTexture(tex);
+        int w = tex.getSize().x / 4;
+        int h = tex.getSize().y;
+        float dt = animClock.restart().asSeconds();
+        frameTimer += dt;
+        if (frameTimer >= frameDuration) {
+            frameTimer = 0.f;
+            currentFrame = (currentFrame + 1) % 4;
+        }
+        sprite.setTextureRect(sf::IntRect(currentFrame * w, 0, w, h));
+        float scale = (shape.getRadius() * 2.5f) / w;
+        sprite.setScale(scale, scale);
+        sprite.setOrigin(w / 2.f, h / 2.f);
+        sprite.setPosition(pos);
+        window.draw(sprite);
+
+        sf::Color oldColor = shape.getFillColor();
+        shape.setFillColor(sf::Color::Transparent);
+        Enemy::draw(window);
+        shape.setFillColor(oldColor);
+    }
 };

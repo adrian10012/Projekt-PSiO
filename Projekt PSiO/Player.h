@@ -21,6 +21,25 @@ private:
     float swordAttackAngle = 0.f;
     sf::RectangleShape swordShape;
 
+    sf::Sprite sprite;
+    sf::Texture texRun;
+    sf::Texture texShoot;
+    sf::Texture swordTex;
+
+    int currentFrame = 0;
+    float frameDurationRun = 0.15f;
+    float frameDurationShoot = 0.05f;
+    float frameTimer = 0.f;
+
+    bool isMoving = false;
+    bool isShooting = false;
+    bool facingRight = true;
+
+    int runFrameWidth;
+    int runFrameHeight;
+    int shootFrameWidth;
+    int shootFrameHeight;
+
 public:
     Inventory inventory;
     float baseDamage = 10.f;

@@ -21,15 +21,25 @@ enum class GameState { MIASTO, WALKA };
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "window");
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Kamil Stoch");
     window.setFramerateLimit(60);
 
     GameState currentState = GameState::MIASTO;
     sf::Font font;
     font.loadFromFile("OpenSans-SemiBold.ttf");
 
+    sf::Texture wallTex;
+    wallTex.loadFromFile("textures/walls.png");
+
+    sf::Texture floorTex;
+    floorTex.loadFromFile("textures/flooring.png");
+    sf::Sprite floorSprite;
+    floorSprite.setTexture(floorTex);
+    floorSprite.setTextureRect(sf::IntRect(0, 0, floorTex.getSize().y, floorTex.getSize().y));
+    floorSprite.setScale(static_cast<float>(TILE_SIZE) / floorTex.getSize().y, static_cast<float>(TILE_SIZE) / floorTex.getSize().y);
+
     Player player;
-    Menu menu({ 150, 80 }, { 600, 400 }, font);
+    Menu menu({ 150, 80 }, { 500, 400 }, font);
     Ekwipunek ekwipunek(font, &player);
     Platnerz platnerz(font, &player);
     Wiedzma wiedzma(font, &player);
@@ -49,9 +59,8 @@ int main()
             gridWalls[y][x] = true;
             sf::RectangleShape wallRect(sf::Vector2f(static_cast<float>(TILE_SIZE), static_cast<float>(TILE_SIZE)));
             wallRect.setPosition(static_cast<float>(x * TILE_SIZE), static_cast<float>(y * TILE_SIZE));
-            wallRect.setFillColor(sf::Color(80, 80, 80));
-            wallRect.setOutlineThickness(-2.f);
-            wallRect.setOutlineColor(sf::Color(50, 50, 50));
+            wallRect.setTexture(&wallTex);
+            wallRect.setTextureRect(sf::IntRect(0, 0, wallTex.getSize().x / 3, wallTex.getSize().y / 3));
             visualWalls.push_back(wallRect);
         }
         };
@@ -106,16 +115,17 @@ int main()
             if (currentState == GameState::MIASTO) {
                 if (event.type == sf::Event::MouseButtonPressed) {
                     sf::Vector2i mouse = sf::Mouse::getPosition(window);
+
                     if (ekwipunek.isOpen()) ekwipunek.handleClick(mouse);
                     else if (platnerz.isOpen()) platnerz.handleClick(mouse);
                     else if (wiedzma.isOpen()) wiedzma.handleClick(mouse);
                     else if (kowal.isOpen()) kowal.handleClick(mouse);
                     else {
-                        menu.handleClick(mouse);
-                        if (menu.getLastClicked() == "Ekwipunek") ekwipunek.toggle();
-                        if (menu.getLastClicked() == "Platnerz") platnerz.toggle();
-                        if (menu.getLastClicked() == "Wiedzma") wiedzma.toggle();
-                        if (menu.getLastClicked() == "Kowal") kowal.toggle();
+                        std::string clicked = menu.handleClick(mouse);
+                        if (clicked == "Ekwipunek") ekwipunek.toggle();
+                        if (clicked == "Platnerz") platnerz.toggle();
+                        if (clicked == "Wiedzma") wiedzma.toggle();
+                        if (clicked == "Kowal") kowal.toggle();
                     }
                 }
             }
@@ -170,6 +180,16 @@ int main()
         else if (currentState == GameState::WALKA)
         {
             window.clear(sf::Color(40, 40, 40));
+
+            for (int y = 0; y < GRID_H; ++y) {
+                for (int x = 0; x < GRID_W; ++x) {
+                    if (!gridWalls[y][x]) {
+                        floorSprite.setPosition(static_cast<float>(x * TILE_SIZE), static_cast<float>(y * TILE_SIZE));
+                        window.draw(floorSprite);
+                    }
+                }
+            }
+
             for (const auto& wall : visualWalls) window.draw(wall);
             for (auto& s : splashes) s.draw(window);
             for (auto& e : enemies) e->draw(window);

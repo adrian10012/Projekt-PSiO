@@ -15,8 +15,9 @@ public:
 
 private:
     struct Slot {
-        sf::RectangleShape rect;
+        sf::FloatRect bounds;
         sf::Text label;
+        sf::Sprite itemIcon; // Dodano sprite do przechowywania ikony
     };
 
     void createSlot(Slot& slot, const std::string& name, int col, int row);
@@ -26,8 +27,13 @@ private:
     Player* player;
     bool open;
 
-    sf::RectangleShape background;
-    sf::RectangleShape closeButton;
+    sf::Texture bgTex;
+    sf::Texture closeTex;
+    sf::Texture slotTex;
+    sf::Texture potionsTex; // Tekstura potek
+
+    sf::FloatRect bgBounds;
+    sf::FloatRect closeBounds;
 
     Slot pot_hp_small, pot_hp_big;
     Slot pot_rhp_small, pot_rhp_big;

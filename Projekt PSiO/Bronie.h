@@ -20,7 +20,6 @@ public:
     std::string get_typ() const { return Item::typ; }
 };
 
-// --- KONKRETNE BRONIE ---
 
 class SlabyMiecz : public Bronie
 {
