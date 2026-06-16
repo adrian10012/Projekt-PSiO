@@ -59,18 +59,11 @@ namespace {
         nsCache[&tex].draw(win, tex, x, y, w, h);
     }
 
+    // --- POPRAWIONE WYCINANIE POTEK NA SZTYWNO ---
     sf::IntRect getPotionRect(const sf::Texture& tex, int col, int row) {
-        // --- TUTAJ ZMIENIASZ PARAMETRY WYTNIÊCIA ---
-        int cellW = 16; // Szerokoœæ jednej "kratki" z potk¹ (zmieñ np. na 24 lub 32 jeœli tnie Ÿle)
-        int cellH = 16; // Wysokoœæ jednej "kratki" z potk¹
-
-        int offsetX = 0; // Jeœli ca³a siatka jest przesuniêta o np. 1 piksel w prawo, ustaw na 1
-        int offsetY = 0; // Jeœli przesuniêta w dó³, ustaw na 1
-
-        int sX = offsetX + (col * cellW);
-        int sY = offsetY + (row * cellH);
-
-        return sf::IntRect(sX, sY, cellW, cellH);
+        int cellW = 16; // Wymiar ikonki z pliku
+        int cellH = 16; // Wymiar ikonki z pliku
+        return sf::IntRect(col * cellW, row * cellH, cellW, cellH);
     }
 }
 
@@ -135,7 +128,7 @@ void Wiedzma::createSlot(Slot& slot, const std::string& name, int col, int row) 
     float x = 230 + col * 150;
     float y = 120 + row * 80;
 
-    slot.bounds = sf::FloatRect(x, y, 130.f, 60.f);
+    slot.bounds = sf::FloatRect(x, y, 130.f, 65.f);
 
     int texC = 0, texR = 0;
     if (name == "Mala HP") { texC = 3; texR = 10; }
@@ -151,13 +144,21 @@ void Wiedzma::createSlot(Slot& slot, const std::string& name, int col, int row) 
     slot.itemIcon.setTexture(potionsTex);
     slot.itemIcon.setTextureRect(pRect);
     slot.itemIcon.setOrigin(pRect.width / 2.f, pRect.height / 2.f);
-    slot.itemIcon.setPosition(x + 65.f, y + 30.f);
-    slot.itemIcon.setScale(2.5f, 2.5f);
+    slot.itemIcon.setPosition(x + 65.f, y + 25.f); // Ikona podniesiona
+    slot.itemIcon.setScale(2.5f, 2.5f); // £adne powiêkszenie
 
-    slot.label.setString("");
+    slot.label.setFont(font);
+    slot.label.setString(name);
+    slot.label.setCharacterSize(13);
+    slot.label.setFillColor(sf::Color::White);
+
+    sf::FloatRect r = slot.label.getLocalBounds();
+    slot.label.setOrigin(r.width / 2.f, r.height / 2.f);
+    slot.label.setPosition(x + 65.f, y + 53.f); // Tekst elegancko na dole slota
 }
 
 void Wiedzma::drawSlot(sf::RenderWindow& window, Slot& slot) {
     drawSmartUI(window, slotTex, slot.bounds.left, slot.bounds.top, slot.bounds.width, slot.bounds.height);
     window.draw(slot.itemIcon);
+    window.draw(slot.label);
 }

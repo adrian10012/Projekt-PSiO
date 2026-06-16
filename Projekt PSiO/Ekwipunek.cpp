@@ -63,18 +63,11 @@ namespace {
         nsCache[&tex].draw(win, tex, x, y, w, h);
     }
 
+    // --- POPRAWIONE WYCINANIE POTEK NA SZTYWNO ---
     sf::IntRect getPotionRect(const sf::Texture& tex, int col, int row) {
-        // --- TUTAJ ZMIENIASZ PARAMETRY WYTNIÊCIA ---
-        int cellW = 16; // Szerokoœæ jednej "kratki" z potk¹ (zmieñ np. na 24 lub 32 jeœli tnie Ÿle)
-        int cellH = 16; // Wysokoœæ jednej "kratki" z potk¹
-
-        int offsetX = 0; // Jeœli ca³a siatka jest przesuniêta o np. 1 piksel w prawo, ustaw na 1
-        int offsetY = 0; // Jeœli przesuniêta w dó³, ustaw na 1
-
-        int sX = offsetX + (col * cellW);
-        int sY = offsetY + (row * cellH);
-
-        return sf::IntRect(sX, sY, cellW, cellH);
+        int cellW = 16; // Wymiar ikonki z pliku
+        int cellH = 16; // Wymiar ikonki z pliku
+        return sf::IntRect(col * cellW, row * cellH, cellW, cellH);
     }
 }
 
@@ -117,10 +110,8 @@ void Ekwipunek::draw(sf::RenderWindow& window) {
     drawSlot(window, chestplate);
     drawSlot(window, spodnie);
     drawSlot(window, buty);
-
     drawSlot(window, miecz);
     drawSlot(window, eliksir);
-
     drawSlot(window, extra1);
     drawSlot(window, extra2);
     drawSlot(window, extra3);
@@ -175,8 +166,7 @@ void Ekwipunek::handleClick(sf::Vector2i mouse) {
             }
             if (eliksir.bounds.contains(mx, my) && !player->inventory.mikstury.empty()) {
                 player->inventory.sloty[freeIdx] = std::unique_ptr<Item>(player->inventory.mikstury[0].release());
-                player->inventory.mikstury.erase(player->inventory.mikstury.begin());
-                return;
+                player->inventory.mikstury.erase(player->inventory.mikstury.begin()); return;
             }
         }
     }
@@ -187,33 +177,27 @@ void Ekwipunek::handleClick(sf::Vector2i mouse) {
 
         if (helm.bounds.contains(mx, my) && it->typ == "Helm") {
             auto* p = dynamic_cast<Pancerze*>(player->inventory.sloty[draggedIndex].release());
-            if (p) player->inventory.helm.reset(p);
-            draggedIndex = -1; return;
+            if (p) player->inventory.helm.reset(p); draggedIndex = -1; return;
         }
         if (chestplate.bounds.contains(mx, my) && it->typ == "Klata") {
             auto* p = dynamic_cast<Pancerze*>(player->inventory.sloty[draggedIndex].release());
-            if (p) player->inventory.klata.reset(p);
-            draggedIndex = -1; return;
+            if (p) player->inventory.klata.reset(p); draggedIndex = -1; return;
         }
         if (spodnie.bounds.contains(mx, my) && it->typ == "Spodnie") {
             auto* p = dynamic_cast<Pancerze*>(player->inventory.sloty[draggedIndex].release());
-            if (p) player->inventory.spodnie.reset(p);
-            draggedIndex = -1; return;
+            if (p) player->inventory.spodnie.reset(p); draggedIndex = -1; return;
         }
         if (buty.bounds.contains(mx, my) && it->typ == "Buty") {
             auto* p = dynamic_cast<Pancerze*>(player->inventory.sloty[draggedIndex].release());
-            if (p) player->inventory.buty.reset(p);
-            draggedIndex = -1; return;
+            if (p) player->inventory.buty.reset(p); draggedIndex = -1; return;
         }
         if (miecz.bounds.contains(mx, my) && (it->typ == "Mele" || it->typ == "Range")) {
             auto* b = dynamic_cast<Bronie*>(player->inventory.sloty[draggedIndex].release());
-            if (b) player->inventory.bron.reset(b);
-            draggedIndex = -1; return;
+            if (b) player->inventory.bron.reset(b); draggedIndex = -1; return;
         }
         if (eliksir.bounds.contains(mx, my) && it->typ == "Mikstura") {
             auto* m = dynamic_cast<Mikstura*>(player->inventory.sloty[draggedIndex].release());
-            if (m) player->inventory.mikstury.emplace_back(m);
-            draggedIndex = -1; return;
+            if (m) player->inventory.mikstury.emplace_back(m); draggedIndex = -1; return;
         }
     }
 }
@@ -226,7 +210,7 @@ void Ekwipunek::createSlot(Slot& slot, const std::string& name, int col, int row
 
     slot.label.setFont(font);
     slot.label.setString(name);
-    slot.label.setCharacterSize(16);
+    slot.label.setCharacterSize(14);
     slot.label.setFillColor(sf::Color::White);
 
     slot.itemIcon.setColor(sf::Color::Transparent);
@@ -235,11 +219,29 @@ void Ekwipunek::createSlot(Slot& slot, const std::string& name, int col, int row
 void Ekwipunek::drawSlot(sf::RenderWindow& window, Slot& slot) {
     drawSmartUI(window, slotTex, slot.bounds.left, slot.bounds.top, slot.bounds.width, slot.bounds.height);
     if (slot.itemIcon.getColor() != sf::Color::Transparent) window.draw(slot.itemIcon);
-    else window.draw(slot.label);
+    window.draw(slot.label);
+}
+
+std::string Ekwipunek::getTexPath(const std::string& itemName) {
+    if (itemName == "Slaby Miecz") return "textures/sword_01a.png";
+    if (itemName == "Zwykly Miecz") return "textures/sword_01b.png";
+    if (itemName == "Dobry Miecz") return "textures/sword_01c.png";
+    if (itemName == "Wysmienity Miecz") return "textures/sword_01e.png";
+    if (itemName == "Kiepski Helm") return "textures/armor/item205.png";
+    if (itemName == "Wyborny Helm") return "textures/armor/item206.png";
+    if (itemName == "Mizerny Napiersnik") return "textures/armor/item225.png";
+    if (itemName == "Dobry Napiersnik") return "textures/armor/item226.png";
+    if (itemName == "Brudne Spodnie") return "textures/armor/item245.png";
+    if (itemName == "Pancerne Spodnie") return "textures/armor/item246.png";
+    if (itemName == "Trzewiki") return "textures/armor/item265.png";
+    if (itemName == "Wygodne Onuce") return "textures/armor/item266.png";
+    return "";
 }
 
 void Ekwipunek::updateSlotLabels()
 {
+    static std::map<std::string, sf::Texture> eqItemTextures;
+
     auto setupSlot = [&](Slot& s, Item* item, const std::string& defaultName) {
         if (!item) {
             s.label.setString(defaultName);
@@ -260,18 +262,32 @@ void Ekwipunek::updateSlotLabels()
             sf::IntRect pRect = getPotionRect(potionsTex, c, r);
             s.itemIcon.setTextureRect(pRect);
             s.itemIcon.setOrigin(pRect.width / 2.f, pRect.height / 2.f);
-            s.itemIcon.setPosition(s.bounds.left + s.bounds.width / 2.f, s.bounds.top + s.bounds.height / 2.f);
-            s.itemIcon.setScale(2.5f, 2.5f);
+            s.itemIcon.setPosition(s.bounds.left + s.bounds.width / 2.f, s.bounds.top + 40.f); // Centrowanie ikony
+            s.itemIcon.setScale(3.0f, 3.0f); // Wiêksza skala w ekwipunku bo slot ma 100x100
             s.itemIcon.setColor(sf::Color::White);
+            s.label.setString(item->nazwa);
         }
         else {
+            std::string path = getTexPath(item->nazwa);
+            if (!path.empty()) {
+                if (eqItemTextures.find(path) == eqItemTextures.end()) eqItemTextures[path].loadFromFile(path);
+                s.itemIcon.setTexture(eqItemTextures[path]);
+                s.itemIcon.setTextureRect(sf::IntRect(0, 0, eqItemTextures[path].getSize().x, eqItemTextures[path].getSize().y));
+                s.itemIcon.setOrigin(eqItemTextures[path].getSize().x / 2.f, eqItemTextures[path].getSize().y / 2.f);
+                s.itemIcon.setPosition(s.bounds.left + s.bounds.width / 2.f, s.bounds.top + 40.f);
+                s.itemIcon.setScale(1.5f, 1.5f);
+                s.itemIcon.setColor(sf::Color::White);
+            }
+            else {
+                s.itemIcon.setColor(sf::Color::Transparent);
+            }
             s.label.setString(item->nazwa);
-            s.itemIcon.setColor(sf::Color::Transparent);
         }
 
         sf::FloatRect rBound = s.label.getLocalBounds();
         s.label.setOrigin(rBound.width / 2.f, rBound.height / 2.f);
-        s.label.setPosition(s.bounds.left + s.bounds.width / 2.f, s.bounds.top + s.bounds.height / 2.f);
+        // Napisy u³o¿one zawsze na dole kafelka
+        s.label.setPosition(s.bounds.left + s.bounds.width / 2.f, s.bounds.top + s.bounds.height - 15.f);
         };
 
     setupSlot(helm, player->inventory.helm.get(), "Helm");

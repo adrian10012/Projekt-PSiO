@@ -70,10 +70,10 @@ Kowal::Kowal(sf::Font& font, Player* p)
     bgBounds = sf::FloatRect(200.f, 150.f, 500.f, 350.f);
     closeBounds = sf::FloatRect(640.f, 170.f, 40.f, 40.f);
 
-    createSlot(sword1, "Slaby Miecz", 0, 0);
-    createSlot(sword2, "Zwykly Miecz", 1, 0);
-    createSlot(sword3, "Dobry Miecz", 0, 1);
-    createSlot(sword4, "Wysmienity Miecz", 1, 1);
+    createSlot(sword1, "Slaby Miecz", 0, 0, "textures/sword_01a.png");
+    createSlot(sword2, "Zwykly Miecz", 1, 0, "textures/sword_01b.png");
+    createSlot(sword3, "Dobry Miecz", 0, 1, "textures/sword_01c.png");
+    createSlot(sword4, "Wysmienity Miecz", 1, 1, "textures/sword_01e.png");
 }
 
 void Kowal::draw(sf::RenderWindow& window) {
@@ -104,7 +104,7 @@ void Kowal::handleClick(sf::Vector2i mouse) {
     if (sword4.bounds.contains(mx, my)) player->inventory.addToFreeSlot(std::make_unique<WysmienityMiecz>());
 }
 
-void Kowal::createSlot(Slot& slot, const std::string& name, int col, int row) {
+void Kowal::createSlot(Slot& slot, const std::string& name, int col, int row, const std::string& texPath) {
     float x = 230 + col * 150;
     float y = 220 + row * 100;
 
@@ -112,15 +112,30 @@ void Kowal::createSlot(Slot& slot, const std::string& name, int col, int row) {
 
     slot.label.setFont(font);
     slot.label.setString(name);
-    slot.label.setCharacterSize(20);
+    slot.label.setCharacterSize(14);
     slot.label.setFillColor(sf::Color::White);
 
     sf::FloatRect r = slot.label.getLocalBounds();
-    slot.label.setOrigin(r.width / 2, r.height / 2);
-    slot.label.setPosition(x + 65, y + 40);
+    slot.label.setOrigin(r.width / 2.f, r.height / 2.f);
+    slot.label.setPosition(x + 65.f, y + 60.f);
+
+    slot.itemIcon.setColor(sf::Color::Transparent);
+
+    if (!texPath.empty()) {
+        static std::map<std::string, sf::Texture> texMap;
+        if (texMap.find(texPath) == texMap.end()) {
+            texMap[texPath].loadFromFile(texPath);
+        }
+        slot.itemIcon.setTexture(texMap[texPath]);
+        slot.itemIcon.setOrigin(texMap[texPath].getSize().x / 2.f, texMap[texPath].getSize().y / 2.f);
+        slot.itemIcon.setPosition(x + 65.f, y + 35.f);
+        slot.itemIcon.setScale(1.5f, 1.5f);
+        slot.itemIcon.setColor(sf::Color::White);
+    }
 }
 
 void Kowal::drawSlot(sf::RenderWindow& window, Slot& slot) {
     drawSmartUI(window, slotTex, slot.bounds.left, slot.bounds.top, slot.bounds.width, slot.bounds.height);
+    if (slot.itemIcon.getColor() != sf::Color::Transparent) window.draw(slot.itemIcon);
     window.draw(slot.label);
 }

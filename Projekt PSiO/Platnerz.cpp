@@ -70,14 +70,14 @@ Platnerz::Platnerz(sf::Font& font, Player* p)
     bgBounds = sf::FloatRect(200.f, 100.f, 500.f, 450.f);
     closeBounds = sf::FloatRect(640.f, 120.f, 40.f, 40.f);
 
-    createSlot(helm1, "Helm 1", 0, 0);
-    createSlot(helm2, "Helm 2", 1, 0);
-    createSlot(chest1, "Zbroja 1", 0, 1);
-    createSlot(chest2, "Zbroja 2", 1, 1);
-    createSlot(buty1, "Buty 1", 0, 2);
-    createSlot(buty2, "Buty 2", 1, 2);
-    createSlot(spodnie1, "Spodnie 1", 0, 3);
-    createSlot(spodnie2, "Spodnie 2", 1, 3);
+    createSlot(helm1, "Kiepski Helm", 0, 0, "textures/armor/item205.png");
+    createSlot(helm2, "Wyborny Helm", 1, 0, "textures/armor/item206.png");
+    createSlot(chest1, "Mizerny Napiersnik", 0, 1, "textures/armor/item225.png");
+    createSlot(chest2, "Dobry Napiersnik", 1, 1, "textures/armor/item226.png");
+    createSlot(buty1, "Trzewiki", 0, 2, "textures/armor/item245.png");
+    createSlot(buty2, "Wygodne Onuce", 1, 2, "textures/armor/item246.png");
+    createSlot(spodnie1, "Brudne Spodnie", 0, 3, "textures/armor/item265.png"); // Jeœli nie masz tekstury spodni, zostaw ""
+    createSlot(spodnie2, "Pancerne Spodnie", 1, 3, "textures/armor/item266.png");
 }
 
 void Platnerz::draw(sf::RenderWindow& window) {
@@ -118,23 +118,42 @@ void Platnerz::handleClick(sf::Vector2i mouse) {
     if (spodnie2.bounds.contains(mx, my)) player->inventory.addToFreeSlot(std::make_unique<PancerneSpodnie>());
 }
 
-void Platnerz::createSlot(Slot& slot, const std::string& name, int col, int row) {
+void Platnerz::createSlot(Slot& slot, const std::string& name, int col, int row, const std::string& texPath) {
     float x = 230 + col * 150;
     float y = 150 + row * 90;
 
-    slot.bounds = sf::FloatRect(x, y, 130.f, 70.f);
+    slot.bounds = sf::FloatRect(x, y, 130.f, 75.f);
 
     slot.label.setFont(font);
     slot.label.setString(name);
-    slot.label.setCharacterSize(18);
+    slot.label.setCharacterSize(12);
     slot.label.setFillColor(sf::Color::White);
 
     sf::FloatRect r = slot.label.getLocalBounds();
-    slot.label.setOrigin(r.width / 2, r.height / 2);
-    slot.label.setPosition(x + 65, y + 35);
+    slot.label.setOrigin(r.width / 2.f, r.height / 2.f);
+    slot.label.setPosition(x + 65.f, y + 55.f);
+
+    slot.itemIcon.setColor(sf::Color::Transparent);
+
+    if (!texPath.empty()) {
+        static std::map<std::string, sf::Texture> texMap;
+        if (texMap.find(texPath) == texMap.end()) {
+            texMap[texPath].loadFromFile(texPath);
+        }
+        slot.itemIcon.setTexture(texMap[texPath]);
+        slot.itemIcon.setOrigin(texMap[texPath].getSize().x / 2.f, texMap[texPath].getSize().y / 2.f);
+        slot.itemIcon.setPosition(x + 65.f, y + 30.f);
+        slot.itemIcon.setScale(1.5f, 1.5f);
+        slot.itemIcon.setColor(sf::Color::White);
+    }
+    else {
+        // Gdy nie ma ikony (np. spodnie), centrujemy tekst
+        slot.label.setPosition(x + 65.f, y + 37.f);
+    }
 }
 
 void Platnerz::drawSlot(sf::RenderWindow& window, Slot& slot) {
     drawSmartUI(window, slotTex, slot.bounds.left, slot.bounds.top, slot.bounds.width, slot.bounds.height);
+    if (slot.itemIcon.getColor() != sf::Color::Transparent) window.draw(slot.itemIcon);
     window.draw(slot.label);
 }

@@ -9,6 +9,7 @@ public:
     struct Slot {
         sf::FloatRect bounds;
         sf::Text label;
+        sf::Sprite itemIcon;
     };
 
     Platnerz(sf::Font& font, Player* p);
@@ -35,6 +36,6 @@ private:
     Slot buty1, buty2;
     Slot spodnie1, spodnie2;
 
-    void createSlot(Slot& slot, const std::string& name, int col, int row);
+    void createSlot(Slot& slot, const std::string& name, int col, int row, const std::string& texPath);
     void drawSlot(sf::RenderWindow& window, Slot& slot);
 };

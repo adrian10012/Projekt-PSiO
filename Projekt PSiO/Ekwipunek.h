@@ -17,12 +17,13 @@ private:
     struct Slot {
         sf::FloatRect bounds;
         sf::Text label;
-        sf::Sprite itemIcon; // Miejsce na ewentualn¹ grafikê
+        sf::Sprite itemIcon;
     };
 
     void createSlot(Slot& slot, const std::string& name, int col, int row);
     void drawSlot(sf::RenderWindow& window, Slot& slot);
     void updateSlotLabels();
+    std::string getTexPath(const std::string& itemName);
 
     sf::Font& font;
     Player* player;
