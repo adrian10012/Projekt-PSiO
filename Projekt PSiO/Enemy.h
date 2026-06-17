@@ -179,7 +179,7 @@ public:
     void draw(sf::RenderWindow& window) override {
         sf::Texture& tex = getTexture();
         sprite.setTexture(tex);
-        sprite.setColor(sf::Color(180, 255, 180)); // Zielonkawy odcieñ dla rozró¿nienia
+        sprite.setColor(sf::Color(180, 255, 180));
         int w = tex.getSize().x / 4;
         int h = tex.getSize().y;
         float dt = animClock.restart().asSeconds();
@@ -221,7 +221,7 @@ public:
     void draw(sf::RenderWindow& window) override {
         sf::Texture& tex = getTexture();
         sprite.setTexture(tex);
-        sprite.setColor(sf::Color(180, 180, 255)); // Niebieskawy odcieñ dla rozró¿nienia
+        sprite.setColor(sf::Color(180, 180, 255));
         int w = tex.getSize().x / 4;
         int h = tex.getSize().y;
         float dt = animClock.restart().asSeconds();

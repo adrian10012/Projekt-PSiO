@@ -21,8 +21,6 @@ public:
     float getCzas() const { return czas; }
 };
 
-// --- KONKRETNE MIKSTURY ---
-
 class MalaMiksturaZdrowia : public Mikstura
 {
 public:

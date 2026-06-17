@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <memory>
+#include <string>
 #include "Bullet.h"
 #include "Splash.h"
 #include "Inventory.h"
@@ -42,10 +43,19 @@ private:
 
 public:
     Inventory inventory;
+    int gold = 100;
     float baseDamage = 10.f;
     float finalDamage = 10.f;
     float baseArmor = 0.f;
     float finalArmor = 0.f;
+
+
+    float strBuffTimer = 0.f;
+    float armBuffTimer = 0.f;
+    float regenTimer = 0.f;
+    int strBuffAmount = 0;
+    int armBuffAmount = 0;
+    int regenRate = 0;
 
     Player();
 
@@ -56,6 +66,11 @@ public:
 
     void setPos(sf::Vector2f newPos);
     void setHp(float newHp);
+
+    void consumePotion();
+
+    void saveGame(const std::string& filename);
+    void loadGame(const std::string& filename);
 
     void update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes, std::vector<std::unique_ptr<Enemy>>& enemies);
     void draw(sf::RenderWindow& window);

@@ -9,7 +9,9 @@ public:
     struct Slot {
         sf::FloatRect bounds;
         sf::Text label;
+        sf::Text priceLabel; // CENA
         sf::Sprite itemIcon;
+        int price; // CENA
     };
 
     Kowal(sf::Font& font, Player* p);
@@ -33,6 +35,6 @@ private:
 
     Slot sword1, sword2, sword3, sword4;
 
-    void createSlot(Slot& slot, const std::string& name, int col, int row, const std::string& texPath);
+    void createSlot(Slot& slot, const std::string& name, int col, int row, int price, const std::string& texPath);
     void drawSlot(sf::RenderWindow& window, Slot& slot);
 };

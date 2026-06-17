@@ -15,7 +15,7 @@ private:
     bool isBomb;
     sf::RectangleShape shape;
     sf::Sprite sprite;
-    bool hasSprite; // Flaga okreœlaj¹ca, czy u¿ywamy obrazka, czy kwadratu
+    bool hasSprite; 
 
     static sf::Texture& getArrowTexture() {
         static sf::Texture tex;
@@ -48,7 +48,6 @@ public:
 
         if (splash) {
             if (isBomb) {
-                // Lec¹ca bomba u¿ywa kuli ognia
                 hasSprite = true;
                 shape.setSize(sf::Vector2f(16.f, 16.f));
                 shape.setOrigin(8.f, 8.f);
@@ -67,7 +66,6 @@ public:
                 sprite.setScale(scale, scale);
             }
             else {
-                // Lec¹ca trucizna - stary, zielony kwadrat
                 shape.setSize(sf::Vector2f(16.f, 16.f));
                 shape.setOrigin(8.f, 8.f);
                 shape.setFillColor(sf::Color(0, 220, 0));
@@ -80,7 +78,6 @@ public:
             shape.setRotation(angle);
 
             if (!isEnemy) {
-                // Strza³a Gracza
                 hasSprite = true;
                 shape.setFillColor(sf::Color::Transparent);
                 sf::Texture& tex = getArrowTexture();
@@ -90,7 +87,6 @@ public:
                 sprite.setRotation(angle);
             }
             else {
-                // Zwyk³y pocisk wroga (wraca do ¿ó³tego)
                 shape.setFillColor(sf::Color::Yellow);
             }
         }
@@ -119,10 +115,10 @@ public:
             shape.setPosition(pos.x, pos.y - arcHeight);
             if (hasSprite) {
                 sprite.setPosition(pos.x, pos.y - arcHeight);
-                sprite.rotate(720.f * dt); // Obrót magicznej kuli
+                sprite.rotate(720.f * dt);
             }
             else {
-                shape.rotate(360.f * dt); // Obrót lec¹cej trucizny
+                shape.rotate(360.f * dt);
             }
         }
         else {

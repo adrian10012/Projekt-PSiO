@@ -20,7 +20,6 @@ public:
     std::string get_typ() { return Item::typ; }
 };
 
-// --- KONKRETNE PANCERZE ---
 
 class MizernyNapiersnik : public Pancerze
 {
