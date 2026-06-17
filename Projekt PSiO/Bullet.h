@@ -15,26 +15,19 @@ private:
     bool isBomb;
     sf::RectangleShape shape;
     sf::Sprite sprite;
-    bool hasSprite; 
+    bool hasSprite;
 
     static sf::Texture& getArrowTexture() {
-        static sf::Texture tex;
-        static bool loaded = false;
-        if (!loaded) {
-            tex.loadFromFile("textures/Arrow.png");
-            loaded = true;
-        }
-        return tex;
+        static sf::Texture tex; static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/Arrow.png"); loaded = true; } return tex;
     }
-
     static sf::Texture& getOrbTexture() {
-        static sf::Texture tex;
-        static bool loaded = false;
-        if (!loaded) {
-            tex.loadFromFile("textures/particles/1104.png");
-            loaded = true;
-        }
-        return tex;
+        static sf::Texture tex; static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/particles/1104.png"); loaded = true; } return tex;
+    }
+    static sf::Texture& getSlimeTexture() {
+        static sf::Texture tex; static bool loaded = false;
+        if (!loaded) { tex.loadFromFile("textures/moby/DeathSlime.png"); loaded = true; } return tex;
     }
 
 public:
@@ -47,28 +40,24 @@ public:
         hasSprite = false;
 
         if (splash) {
+            hasSprite = true;
+            shape.setSize(sf::Vector2f(24.f, 24.f));
+            shape.setOrigin(12.f, 12.f);
+            shape.setFillColor(sf::Color::Transparent);
+
             if (isBomb) {
-                hasSprite = true;
-                shape.setSize(sf::Vector2f(16.f, 16.f));
-                shape.setOrigin(8.f, 8.f);
-                shape.setFillColor(sf::Color::Transparent);
-
-                sf::Texture& tex = getOrbTexture();
-                sprite.setTexture(tex);
-
-                int w = tex.getSize().x / 7;
-                int h = tex.getSize().y / 9;
-
+                sf::Texture& tex = getOrbTexture(); sprite.setTexture(tex);
+                int w = tex.getSize().x / 7; int h = tex.getSize().y / 9;
                 sprite.setTextureRect(sf::IntRect(1 * w, 0, w, h));
                 sprite.setOrigin(w / 2.f, h / 2.f);
-
-                float scale = 32.f / w;
-                sprite.setScale(scale, scale);
+                sprite.setScale(32.f / w, 32.f / w);
             }
             else {
-                shape.setSize(sf::Vector2f(16.f, 16.f));
-                shape.setOrigin(8.f, 8.f);
-                shape.setFillColor(sf::Color(0, 220, 0));
+                sf::Texture& tex = getSlimeTexture(); sprite.setTexture(tex);
+                int w = tex.getSize().x / 4; int h = tex.getSize().y;
+                sprite.setTextureRect(sf::IntRect(0, 0, w, h));
+                sprite.setOrigin(w / 2.f, h / 2.f);
+                sprite.setScale(24.f / w, 24.f / w);
             }
         }
         else {
@@ -76,18 +65,23 @@ public:
             shape.setOrigin(radius, radius);
             float angle = std::atan2(dir.y, dir.x) * 180.f / 3.14159f;
             shape.setRotation(angle);
+            hasSprite = true;
+            shape.setFillColor(sf::Color::Transparent);
 
             if (!isEnemy) {
-                hasSprite = true;
-                shape.setFillColor(sf::Color::Transparent);
-                sf::Texture& tex = getArrowTexture();
-                sprite.setTexture(tex);
+                sf::Texture& tex = getArrowTexture(); sprite.setTexture(tex);
                 sf::FloatRect bounds = sprite.getLocalBounds();
                 sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
                 sprite.setRotation(angle);
             }
             else {
-                shape.setFillColor(sf::Color::Yellow);
+                sf::Texture& tex = getOrbTexture(); sprite.setTexture(tex);
+                int w = tex.getSize().x / 7; int h = tex.getSize().y / 9;
+                sprite.setTextureRect(sf::IntRect(0, 0, w, h));
+                sprite.setOrigin(w / 2.f, h / 2.f);
+                sprite.setScale((radius * 3.f) / w, (radius * 3.f) / w);
+                sprite.setRotation(angle);
+                sprite.setColor(sf::Color(255, 100, 100));
             }
         }
     }
@@ -99,49 +93,30 @@ public:
     bool getIsSplash() const { return isSplash; }
     bool getIsBomb() const { return isBomb; }
     sf::RectangleShape getShape() const { return shape; }
-
     void setLifetime(float newLifetime) { lifetime = newLifetime; }
 
     void update(float dt, const std::vector<sf::RectangleShape>& walls) {
         if (lifetime <= 0.f) return;
-
-        pos += vel * dt;
-        lifetime -= dt;
-
+        pos += vel * dt; lifetime -= dt;
         if (isSplash) {
             float progress = 1.0f - (lifetime / maxLifetime);
             float arcHeight = std::sin(progress * 3.14159f) * 120.f;
-
             shape.setPosition(pos.x, pos.y - arcHeight);
             if (hasSprite) {
                 sprite.setPosition(pos.x, pos.y - arcHeight);
-                sprite.rotate(720.f * dt);
-            }
-            else {
-                shape.rotate(360.f * dt);
+                sprite.rotate(isBomb ? 720.f * dt : 360.f * dt);
             }
         }
         else {
             shape.setPosition(pos);
-            if (hasSprite) {
-                sprite.setPosition(pos);
-            }
-
+            if (hasSprite) sprite.setPosition(pos);
             for (const auto& wall : walls) {
-                if (wall.getGlobalBounds().intersects(shape.getGlobalBounds())) {
-                    lifetime = 0.f;
-                    break;
-                }
+                if (wall.getGlobalBounds().intersects(shape.getGlobalBounds())) { lifetime = 0.f; break; }
             }
         }
     }
 
     void draw(sf::RenderWindow& window) {
-        if (hasSprite) {
-            window.draw(sprite);
-        }
-        else {
-            window.draw(shape);
-        }
+        if (hasSprite) window.draw(sprite); else window.draw(shape);
     }
 };

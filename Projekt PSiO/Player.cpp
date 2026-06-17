@@ -9,14 +9,11 @@
 #include <sstream>
 
 namespace {
-
     std::unique_ptr<Item> createItemByName(const std::string& name) {
-
         if (name == "Slaby Miecz") return std::make_unique<SlabyMiecz>();
         if (name == "Zwykly Miecz") return std::make_unique<ZwyklyMiecz>();
         if (name == "Dobry Miecz") return std::make_unique<DobryMiecz>();
         if (name == "Wysmienity Miecz") return std::make_unique<WysmienityMiecz>();
-
 
         if (name == "Kiepski Helm") return std::make_unique<KiepskiHelm>();
         if (name == "Wyborny Helm") return std::make_unique<WybornyHelm>();
@@ -26,7 +23,6 @@ namespace {
         if (name == "Pancerne Spodnie") return std::make_unique<PancerneSpodnie>();
         if (name == "Trzewiki") return std::make_unique<Trzewiki>();
         if (name == "Wygodne Onuce") return std::make_unique<WygodneOnuce>();
-
 
         if (name == "Ma³a mikstura zdrowia") return std::make_unique<MalaMiksturaZdrowia>();
         if (name == "Ma³a mikstura regeneracji zdrowia") return std::make_unique<MalaMiksturaRegeneracjiZdrowia>();
@@ -41,10 +37,12 @@ namespace {
     }
 }
 
-void Player::saveGame(const std::string& filename) {
+void Player::saveGame(const std::string& filename, int level, int wave) {
     std::ofstream file(filename);
     if (!file.is_open()) return;
 
+    file << "LEVEL," << level << "\n";
+    file << "WAVE," << wave << "\n";
     file << "GOLD," << gold << "\n";
     if (inventory.helm) file << "HELM," << inventory.helm->get_nazwa() << "\n";
     if (inventory.klata) file << "KLATA," << inventory.klata->get_nazwa() << "\n";
@@ -57,17 +55,14 @@ void Player::saveGame(const std::string& filename) {
     }
 
     for (int i = 0; i < 6; ++i) {
-        if (inventory.sloty[i]) {
-            file << "SLOT_" << i << "," << inventory.sloty[i]->nazwa << "\n";
-        }
+        if (inventory.sloty[i]) file << "SLOT_" << i << "," << inventory.sloty[i]->nazwa << "\n";
     }
     file.close();
 }
 
-void Player::loadGame(const std::string& filename) {
+void Player::loadGame(const std::string& filename, int& level, int& wave) {
     std::ifstream file(filename);
     if (!file.is_open()) return;
-
 
     inventory.helm.reset(); inventory.klata.reset(); inventory.spodnie.reset();
     inventory.buty.reset(); inventory.bron.reset(); inventory.mikstury.clear();
@@ -82,7 +77,9 @@ void Player::loadGame(const std::string& filename) {
         std::string key = line.substr(0, delim);
         std::string val = line.substr(delim + 1);
 
-        if (key == "GOLD") gold = std::stoi(val);
+        if (key == "LEVEL") level = std::stoi(val);
+        else if (key == "WAVE") wave = std::stoi(val);
+        else if (key == "GOLD") gold = std::stoi(val);
         else {
             auto item = createItemByName(val);
             if (item) {
@@ -121,7 +118,6 @@ sf::Vector2f Player::getPos() const { return pos; }
 float Player::getSpeed() const { return speed; }
 float Player::getHp() const { return hp; }
 sf::CircleShape Player::getShape() const { return shape; }
-
 void Player::setPos(sf::Vector2f newPos) { pos = newPos; shape.setPosition(pos); }
 void Player::setHp(float newHp) { hp = newHp; }
 
@@ -192,13 +188,11 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
     if (isShooting) {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
         facingRight = (static_cast<float>(mousePos.x) >= pos.x);
-
         frameTimer += dt;
         if (frameTimer >= frameDurationShoot) {
             frameTimer = 0.f; currentFrame++;
             if (currentFrame >= 8) { isShooting = false; currentFrame = 0; }
         }
-
         sprite.setTexture(texShoot);
         sprite.setTextureRect(sf::IntRect(currentFrame * shootFrameWidth, 0, shootFrameWidth, shootFrameHeight));
         sprite.setOrigin(shootFrameWidth / 2.f, shootFrameHeight / 2.f);
@@ -209,7 +203,6 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
             if (frameTimer >= frameDurationRun) { frameTimer = 0.f; currentFrame = (currentFrame + 1) % 4; }
         }
         else { currentFrame = 0; }
-
         sprite.setTexture(texRun);
         sprite.setTextureRect(sf::IntRect(currentFrame * runFrameWidth, 0, runFrameWidth, runFrameHeight));
         sprite.setOrigin(runFrameWidth / 2.f, runFrameHeight / 2.f);
@@ -235,7 +228,6 @@ void Player::update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bul
                 float enemyAngle = std::atan2(dir.y, dir.x) * 180.f / 3.14159f;
                 float angleDiff = std::abs(enemyAngle - swordAttackAngle);
                 if (angleDiff > 180.f) angleDiff = 360.f - angleDiff;
-
                 if (angleDiff <= 45.f) {
                     if (!e->getIsInvulnerable()) e->setHp(e->getHp() - finalDamage);
                 }

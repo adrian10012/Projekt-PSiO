@@ -73,8 +73,8 @@ void Platnerz::draw(sf::RenderWindow& window) {
 
     drawSlot(window, helm1); drawSlot(window, helm2);
     drawSlot(window, chest1); drawSlot(window, chest2);
-    drawSlot(window, buty1); drawSlot(window, buty2);
     drawSlot(window, spodnie1); drawSlot(window, spodnie2);
+    drawSlot(window, buty1); drawSlot(window, buty2);
 
     sf::Text goldTxt;
     goldTxt.setFont(font); goldTxt.setString("Zloto: " + std::to_string(player->gold));
@@ -104,10 +104,10 @@ void Platnerz::handleClick(sf::Vector2i mouse) {
     tryBuy(helm2, []() { return std::make_unique<WybornyHelm>(); });
     tryBuy(chest1, []() { return std::make_unique<MizernyNapiersnik>(); });
     tryBuy(chest2, []() { return std::make_unique<DobryNapiersnik>(); });
-    tryBuy(buty1, []() { return std::make_unique<Trzewiki>(); });
-    tryBuy(buty2, []() { return std::make_unique<WygodneOnuce>(); });
     tryBuy(spodnie1, []() { return std::make_unique<BrudneSpodnie>(); });
     tryBuy(spodnie2, []() { return std::make_unique<PancerneSpodnie>(); });
+    tryBuy(buty1, []() { return std::make_unique<Trzewiki>(); });
+    tryBuy(buty2, []() { return std::make_unique<WygodneOnuce>(); });
 }
 
 void Platnerz::createSlot(Slot& slot, const std::string& name, int col, int row, int price, const std::string& texPath) {

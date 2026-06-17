@@ -49,7 +49,6 @@ public:
     float baseArmor = 0.f;
     float finalArmor = 0.f;
 
-
     float strBuffTimer = 0.f;
     float armBuffTimer = 0.f;
     float regenTimer = 0.f;
@@ -69,8 +68,8 @@ public:
 
     void consumePotion();
 
-    void saveGame(const std::string& filename);
-    void loadGame(const std::string& filename);
+    void saveGame(const std::string& filename, int level, int wave);
+    void loadGame(const std::string& filename, int& level, int& wave);
 
     void update(float dt, sf::RenderWindow& window, std::vector<Bullet>& bullets, const std::vector<Splash>& splashes, std::vector<std::unique_ptr<Enemy>>& enemies);
     void draw(sf::RenderWindow& window);

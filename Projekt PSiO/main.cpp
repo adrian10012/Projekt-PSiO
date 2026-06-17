@@ -3,6 +3,8 @@
 #include <memory>
 #include <cmath>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 #include "Player.h"
 #include "Enemy.h"
 #include "Boss.h"
@@ -17,14 +19,16 @@
 #include "Kowal.h"
 #include "Inventory.h"
 
-enum class GameState { MIASTO, WALKA };
+enum class GameState { MIASTO, WALKA, WIN };
 
 int main()
 {
+    srand(static_cast<unsigned>(time(nullptr)));
+
     sf::RenderWindow window(sf::VideoMode(800, 600), "Kamil Stoch");
     window.setFramerateLimit(60);
 
-    GameState currentState = GameState::MIASTO;
+    GameState currentState = GameState::WALKA;
     sf::Font font;
     font.loadFromFile("OpenSans-SemiBold.ttf");
 
@@ -67,6 +71,66 @@ int main()
     for (int x = 8; x <= 11; ++x) { addWall(x, 6); addWall(x, 8); }
     addWall(7, 7); addWall(12, 7);
 
+    int currentLevel = 1;
+    int currentWave = 1;
+    float waveTimer = 2.0f;
+    bool waveActive = false;
+
+    auto spawnWave = [&]() {
+        if (currentLevel == 1) {
+            if (currentWave == 1) {
+                enemies.push_back(std::make_unique<FirstMeleeEnemy>(sf::Vector2f(100.f, 100.f)));
+                enemies.push_back(std::make_unique<FirstMeleeEnemy>(sf::Vector2f(700.f, 100.f)));
+                enemies.push_back(std::make_unique<FirstShooterEnemy>(sf::Vector2f(400.f, 100.f)));
+            }
+            else if (currentWave == 2) {
+                enemies.push_back(std::make_unique<FirstMeleeEnemy>(sf::Vector2f(100.f, 100.f)));
+                enemies.push_back(std::make_unique<FirstMeleeEnemy>(sf::Vector2f(700.f, 100.f)));
+                enemies.push_back(std::make_unique<FirstThrowerEnemy>(sf::Vector2f(100.f, 500.f)));
+                enemies.push_back(std::make_unique<FirstThrowerEnemy>(sf::Vector2f(700.f, 500.f)));
+            }
+            else if (currentWave == 3) {
+                enemies.push_back(std::make_unique<BossFirst>(sf::Vector2f(400.f, 150.f)));
+            }
+        }
+        else if (currentLevel == 2) {
+            if (currentWave == 1) {
+                enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(100.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(700.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondShooterEnemy>(sf::Vector2f(400.f, 100.f)));
+            }
+            else if (currentWave == 2) {
+                enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(100.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(700.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondThrowerEnemy>(sf::Vector2f(100.f, 500.f)));
+                enemies.push_back(std::make_unique<SecondThrowerEnemy>(sf::Vector2f(700.f, 500.f)));
+            }
+            else if (currentWave == 3) {
+                enemies.push_back(std::make_unique<BossSecond>(sf::Vector2f(400.f, 150.f), 3));
+            }
+        }
+        else if (currentLevel == 3) {
+            if (currentWave == 1) {
+                enemies.push_back(std::make_unique<FirstMeleeEnemy>(sf::Vector2f(100.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(200.f, 100.f)));
+                enemies.push_back(std::make_unique<FirstMeleeEnemy>(sf::Vector2f(700.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(600.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondShooterEnemy>(sf::Vector2f(400.f, 100.f)));
+            }
+            else if (currentWave == 2) {
+                enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(100.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(700.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondThrowerEnemy>(sf::Vector2f(100.f, 500.f)));
+                enemies.push_back(std::make_unique<SecondThrowerEnemy>(sf::Vector2f(700.f, 500.f)));
+                enemies.push_back(std::make_unique<SecondShooterEnemy>(sf::Vector2f(250.f, 100.f)));
+                enemies.push_back(std::make_unique<SecondShooterEnemy>(sf::Vector2f(550.f, 100.f)));
+            }
+            else if (currentWave == 3) {
+                enemies.push_back(std::make_unique<BossThird>(sf::Vector2f(400.f, 150.f)));
+            }
+        }
+        };
+
     sf::Clock clock;
 
     while (window.isOpen())
@@ -78,34 +142,29 @@ int main()
         {
             if (event.type == sf::Event::Closed) window.close();
 
-            if (event.type == sf::Event::KeyPressed) {
+            if (event.type == sf::Event::KeyPressed && currentState != GameState::WIN) {
                 if (event.key.code == sf::Keyboard::Tab) {
                     currentState = (currentState == GameState::MIASTO) ? GameState::WALKA : GameState::MIASTO;
+                    if (currentState == GameState::MIASTO) {
+                        if (ekwipunek.isOpen()) ekwipunek.toggle();
+                        if (platnerz.isOpen()) platnerz.toggle();
+                        if (wiedzma.isOpen()) wiedzma.toggle();
+                        if (kowal.isOpen()) kowal.toggle();
+                    }
                 }
 
-                if (event.key.code == sf::Keyboard::E) {
-                    player.consumePotion();
-                }
+                if (event.key.code == sf::Keyboard::E) player.consumePotion();
 
                 if (event.key.code == sf::Keyboard::F5) {
-                    player.saveGame("zapis.csv");
+                    player.saveGame("zapis.csv", currentLevel, currentWave);
                 }
                 if (event.key.code == sf::Keyboard::F9) {
-                    player.loadGame("zapis.csv");
-                }
-
-                if (currentState == GameState::WALKA) {
-                    if (event.key.code == sf::Keyboard::Num0) {
-                        enemies.push_back(std::make_unique<FirstMeleeEnemy>(sf::Vector2f(60.f, 60.f)));
-                        enemies.push_back(std::make_unique<SecondMeleeEnemy>(sf::Vector2f(740.f, 60.f)));
-                        enemies.push_back(std::make_unique<FirstThrowerEnemy>(sf::Vector2f(60.f, 530.f)));
-                        enemies.push_back(std::make_unique<SecondThrowerEnemy>(sf::Vector2f(740.f, 530.f)));
-                        enemies.push_back(std::make_unique<FirstShooterEnemy>(sf::Vector2f(400.f, 100.f)));
-                        enemies.push_back(std::make_unique<SecondShooterEnemy>(sf::Vector2f(400.f, 400.f)));
-                    }
-                    if (event.key.code == sf::Keyboard::Num1) enemies.push_back(std::make_unique<BossFirst>(sf::Vector2f(400.f, 150.f)));
-                    if (event.key.code == sf::Keyboard::Num2) enemies.push_back(std::make_unique<BossSecond>(sf::Vector2f(400.f, 150.f), 3));
-                    if (event.key.code == sf::Keyboard::Num3) enemies.push_back(std::make_unique<BossThird>(sf::Vector2f(400.f, 150.f)));
+                    player.loadGame("zapis.csv", currentLevel, currentWave);
+                    enemies.clear();
+                    bullets.clear();
+                    splashes.clear();
+                    waveActive = false;
+                    waveTimer = 1.0f;
                 }
             }
 
@@ -129,13 +188,45 @@ int main()
 
         if (currentState == GameState::WALKA)
         {
-            player.update(dt, window, bullets, splashes, enemies);
-
-            sf::Vector2f pPos = player.getPos(); collision(pPos, 14.f, gridWalls); player.setPos(pPos);
-
             if (player.getHp() <= 0.f) {
-                player.setHp(100.f); player.setPos(sf::Vector2f(400.f, 530.f));
+                player.setHp(100.f);
+                player.setPos(sf::Vector2f(400.f, 530.f));
+                enemies.clear();
+                bullets.clear();
+                splashes.clear();
+                currentWave = 1;
+                waveActive = false;
+                waveTimer = 2.0f;
             }
+
+            if (enemies.empty()) {
+                if (waveActive) {
+                    waveActive = false;
+                    currentWave++;
+                    if (currentWave > 3) {
+                        currentLevel++;
+                        currentWave = 1;
+                        if (currentLevel > 3) {
+                            currentLevel = 3;
+                            currentState = GameState::WIN;
+                        }
+                        else {
+                            currentState = GameState::MIASTO;
+                        }
+                    }
+                    waveTimer = 3.0f;
+                }
+                else {
+                    waveTimer -= dt;
+                    if (waveTimer <= 0.f && currentState != GameState::WIN) {
+                        spawnWave();
+                        waveActive = true;
+                    }
+                }
+            }
+
+            player.update(dt, window, bullets, splashes, enemies);
+            sf::Vector2f pPos = player.getPos(); collision(pPos, 14.f, gridWalls); player.setPos(pPos);
 
             std::vector<std::unique_ptr<Enemy>> newSpawns;
 
@@ -193,6 +284,27 @@ int main()
             combatGold.setFillColor(sf::Color::Yellow);
             combatGold.setPosition(10.f, 10.f);
             window.draw(combatGold);
+
+            sf::Text levelText;
+            levelText.setFont(font);
+            levelText.setString("Poziom: " + std::to_string(currentLevel) + "  Fala: " + std::to_string(currentWave));
+            levelText.setCharacterSize(20);
+            levelText.setFillColor(sf::Color::White);
+            levelText.setPosition(600.f, 10.f);
+            window.draw(levelText);
+        }
+        else if (currentState == GameState::WIN)
+        {
+            window.clear(sf::Color(20, 20, 20));
+            sf::Text winText;
+            winText.setFont(font);
+            winText.setString("WIN!");
+            winText.setCharacterSize(100);
+            winText.setFillColor(sf::Color::Yellow);
+            sf::FloatRect tr = winText.getLocalBounds();
+            winText.setOrigin(tr.width / 2.f, tr.height / 2.f);
+            winText.setPosition(400.f, 300.f);
+            window.draw(winText);
         }
 
         window.display();
